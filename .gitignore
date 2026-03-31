@@ -1,0 +1,10 @@
+node_modules/
+.next/
+out/
+.env.local
+*.tsbuildinfo
+
+# Keep a safe scaffold for GivTCP config, but ignore real runtime data/secrets.
+givtcp-config/*
+!givtcp-config/.gitkeep
+!givtcp-config/allsettings.template.json

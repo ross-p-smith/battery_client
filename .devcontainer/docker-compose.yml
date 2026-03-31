@@ -1,0 +1,28 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/typescript-node:20
+    volumes:
+      - ..:/workspace:cached
+      - ../givtcp-config:/var/givtcp-config
+    command: sleep infinity
+    depends_on:
+      - mosquitto
+      - givtcp
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+
+  givtcp:
+    image: britkat/giv_tcp-dev:latest
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/London
+    ports:
+      - "8099:8099"
+    volumes:
+      - ../givtcp-config:/config/GivTCP
