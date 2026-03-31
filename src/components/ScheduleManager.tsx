@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useBattery } from "@/context/BatteryContext";
 
 interface SlotData {
@@ -33,10 +33,19 @@ function SlotEditor({
     endTime: string;
     onSave: (slot: SlotData) => void;
 }) {
-    const [start, setStart] = useState(parseTimeSlot(startTime));
-    const [finish, setFinish] = useState(parseTimeSlot(endTime));
+    const currentStart = useMemo(() => parseTimeSlot(startTime), [startTime]);
+    const currentFinish = useMemo(() => parseTimeSlot(endTime), [endTime]);
+    const [start, setStart] = useState(currentStart);
+    const [finish, setFinish] = useState(currentFinish);
     const [targetSoc, setTargetSoc] = useState("100");
-    const [modified, setModified] = useState(false);
+    const modified =
+        start !== currentStart || finish !== currentFinish || targetSoc !== "100";
+
+    useEffect(() => {
+        setStart(currentStart);
+        setFinish(currentFinish);
+        setTargetSoc("100");
+    }, [currentStart, currentFinish]);
 
     const label = type === "charge" ? "Charge" : "Discharge";
     const color = type === "charge" ? "emerald" : "amber";
@@ -54,7 +63,6 @@ function SlotEditor({
                         value={start}
                         onChange={(e) => {
                             setStart(e.target.value);
-                            setModified(true);
                         }}
                         className="rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200"
                     />
@@ -66,7 +74,6 @@ function SlotEditor({
                         value={finish}
                         onChange={(e) => {
                             setFinish(e.target.value);
-                            setModified(true);
                         }}
                         className="rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200"
                     />
@@ -80,7 +87,6 @@ function SlotEditor({
                         value={targetSoc}
                         onChange={(e) => {
                             setTargetSoc(e.target.value);
-                            setModified(true);
                         }}
                         className="w-16 rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200 tabular-nums"
                     />
@@ -92,7 +98,6 @@ function SlotEditor({
                             finish: formatTimeForCommand(finish),
                             targetSoc,
                         });
-                        setModified(false);
                     }}
                     disabled={!modified}
                     className={`rounded px-3 py-1 text-xs font-medium transition-colors ${modified
@@ -104,14 +109,14 @@ function SlotEditor({
                 </button>
             </div>
             <div className="mt-1 text-xs text-zinc-600">
-                Current: {parseTimeSlot(startTime)} — {parseTimeSlot(endTime)}
+                Current: {currentStart} — {currentFinish}
             </div>
         </div>
     );
 }
 
 export default function ScheduleManager() {
-    const { timeslots, publishControl } = useBattery();
+    const { timeslots, control, publishControl } = useBattery();
 
     const handleSaveChargeSlot = (slotNum: number, data: SlotData) => {
         const payload: Record<string, string> = {
@@ -143,9 +148,34 @@ export default function ScheduleManager() {
 
             <div className="space-y-4">
                 <div>
-                    <h3 className="mb-2 text-sm font-medium text-emerald-400">
-                        Charge Slots
-                    </h3>
+                    <div className="mb-2 flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-emerald-400">Charge Slots</h3>
+                        <button
+                            onClick={() =>
+                                publishControl(
+                                    "enableChargeSchedule",
+                                    JSON.stringify({
+                                        state:
+                                            control.Enable_Charge_Schedule === "enable"
+                                                ? "disable"
+                                                : "enable",
+                                    }),
+                                )
+                            }
+                            className={`relative h-5 w-9 rounded-full transition-colors ${control.Enable_Charge_Schedule === "enable"
+                                ? "bg-emerald-600"
+                                : "bg-zinc-600"
+                                }`}
+                            aria-label="Toggle charge schedule"
+                        >
+                            <span
+                                className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform ${control.Enable_Charge_Schedule === "enable"
+                                    ? "translate-x-4"
+                                    : "translate-x-0"
+                                    }`}
+                            />
+                        </button>
+                    </div>
                     <div className="space-y-2">
                         <SlotEditor
                             slotNumber={1}
@@ -172,9 +202,34 @@ export default function ScheduleManager() {
                 </div>
 
                 <div>
-                    <h3 className="mb-2 text-sm font-medium text-amber-400">
-                        Discharge Slots
-                    </h3>
+                    <div className="mb-2 flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-amber-400">Discharge Slots</h3>
+                        <button
+                            onClick={() =>
+                                publishControl(
+                                    "enableDischargeSchedule",
+                                    JSON.stringify({
+                                        state:
+                                            control.Enable_Discharge_Schedule === "enable"
+                                                ? "disable"
+                                                : "enable",
+                                    }),
+                                )
+                            }
+                            className={`relative h-5 w-9 rounded-full transition-colors ${control.Enable_Discharge_Schedule === "enable"
+                                ? "bg-emerald-600"
+                                : "bg-zinc-600"
+                                }`}
+                            aria-label="Toggle discharge schedule"
+                        >
+                            <span
+                                className={`absolute top-0.5 left-0.5 h-4 w-4 rounded-full bg-white transition-transform ${control.Enable_Discharge_Schedule === "enable"
+                                    ? "translate-x-4"
+                                    : "translate-x-0"
+                                    }`}
+                            />
+                        </button>
+                    </div>
                     <div className="space-y-2">
                         <SlotEditor
                             slotNumber={1}

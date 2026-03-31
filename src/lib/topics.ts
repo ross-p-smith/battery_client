@@ -39,6 +39,8 @@ export const controlTopics = () => {
         setDischargeSlot3: `${root}/setDischargeSlot3`,
         setBatteryMode: `${root}/setBatteryMode`,
         setBatteryPauseMode: `${root}/setBatteryPauseMode`,
+        setPauseStart: `${root}/setPauseStart`,
+        setPauseEnd: `${root}/setPauseEnd`,
         setEcoMode: `${root}/setEcoMode`,
         forceCharge: `${root}/forceCharge`,
         forceExport: `${root}/forceExport`,

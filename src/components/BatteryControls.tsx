@@ -1,7 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useBattery } from "@/context/BatteryContext";
+
+function parseTimeSlot(timeStr: string): string {
+    if (!timeStr || timeStr === "00:00:00") return "00:00";
+    return timeStr.slice(0, 5);
+}
 
 function SliderControl({
     label,
@@ -73,31 +78,31 @@ function DurationButton({
         <div className="rounded-lg bg-zinc-800 p-3">
             <div className="mb-2 text-xs text-zinc-400">{label}</div>
             {isActive ? (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-semibold text-amber-400 tabular-nums">
                         {activeNum} min remaining
                     </span>
                     <button
                         onClick={() => publishControl(command, "Cancel")}
-                        className="ml-auto rounded bg-red-900/60 px-3 py-1 text-xs text-red-300 hover:bg-red-800"
+                        className="w-full rounded bg-red-900/60 px-3 py-1 text-xs text-red-300 hover:bg-red-800 sm:ml-auto sm:w-auto"
                     >
                         Cancel
                     </button>
                 </div>
             ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                     <input
                         type="number"
                         min={1}
                         max={1440}
                         value={duration}
                         onChange={(e) => setDuration(e.target.value)}
-                        className="w-20 rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200 tabular-nums"
+                        className="w-20 shrink-0 rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200 tabular-nums"
                     />
-                    <span className="text-xs text-zinc-500">min</span>
+                    <span className="shrink-0 text-xs text-zinc-500">min</span>
                     <button
                         onClick={() => publishControl(command, duration)}
-                        className="ml-auto rounded bg-emerald-900/60 px-3 py-1 text-xs text-emerald-300 hover:bg-emerald-800"
+                        className="w-full rounded bg-emerald-900/60 px-3 py-1 text-xs text-emerald-300 hover:bg-emerald-800 sm:ml-auto sm:w-auto"
                     >
                         Start
                     </button>
@@ -108,7 +113,18 @@ function DurationButton({
 }
 
 export default function BatteryControls() {
-    const { control, inverter, publishControl } = useBattery();
+    const { control, inverter, timeslots, publishControl } = useBattery();
+    const currentPauseStart = parseTimeSlot(timeslots.Battery_pause_start_time_slot ?? "");
+    const currentPauseEnd = parseTimeSlot(timeslots.Battery_pause_end_time_slot ?? "");
+    const [pauseStart, setPauseStart] = useState(currentPauseStart);
+    const [pauseEnd, setPauseEnd] = useState(currentPauseEnd);
+    const pauseWindowChanged =
+        pauseStart !== currentPauseStart || pauseEnd !== currentPauseEnd;
+
+    useEffect(() => {
+        setPauseStart(currentPauseStart);
+        setPauseEnd(currentPauseEnd);
+    }, [currentPauseStart, currentPauseEnd]);
 
     const maxBatRate = inverter.Invertor_Max_Bat_Rate || 2600;
 
@@ -158,9 +174,9 @@ export default function BatteryControls() {
                         }`}
                 >
                     <span
-                        className={`absolute top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${control.Eco_Mode === "enable"
+                        className={`absolute top-0.5 left-0.5 h-5 w-5 rounded-full bg-white transition-transform ${control.Eco_Mode === "enable"
                                 ? "translate-x-5"
-                                : "translate-x-0.5"
+                            : "translate-x-0"
                             }`}
                     />
                 </button>
@@ -189,6 +205,47 @@ export default function BatteryControls() {
                             </button>
                         ),
                     )}
+                </div>
+            </div>
+
+            {/* Pause Schedule */}
+            <div className="mb-4 rounded-lg bg-zinc-800 p-3">
+                <div className="mb-2 text-xs text-zinc-400">Pause Schedule</div>
+                <div className="flex flex-wrap items-end gap-2">
+                    <div>
+                        <label className="block text-xs text-zinc-500">Start</label>
+                        <input
+                            type="time"
+                            value={pauseStart}
+                            onChange={(e) => setPauseStart(e.target.value)}
+                            className="rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-xs text-zinc-500">End</label>
+                        <input
+                            type="time"
+                            value={pauseEnd}
+                            onChange={(e) => setPauseEnd(e.target.value)}
+                            className="rounded bg-zinc-700 px-2 py-1 text-sm text-zinc-200"
+                        />
+                    </div>
+                    <button
+                        onClick={() => {
+                            publishControl("setPauseStart", pauseStart);
+                            publishControl("setPauseEnd", pauseEnd);
+                        }}
+                        disabled={!pauseWindowChanged}
+                        className={`w-full rounded px-3 py-1 text-xs sm:ml-auto sm:w-auto ${pauseWindowChanged
+                                ? "bg-cyan-900/60 text-cyan-300 hover:bg-cyan-800"
+                                : "cursor-not-allowed bg-zinc-700 text-zinc-500"
+                            }`}
+                    >
+                        Save Pause Window
+                    </button>
+                </div>
+                <div className="mt-1 text-xs text-zinc-600">
+                    Current: {currentPauseStart} - {currentPauseEnd}
                 </div>
             </div>
 
@@ -250,64 +307,6 @@ export default function BatteryControls() {
                         )
                     }
                 />
-            </div>
-
-            {/* Schedule Toggles */}
-            <div className="mb-4 grid grid-cols-2 gap-3">
-                <div className="flex items-center justify-between rounded-lg bg-zinc-800 p-3">
-                    <span className="text-xs text-zinc-400">Charge Schedule</span>
-                    <button
-                        onClick={() =>
-                            publishControl(
-                                "enableChargeSchedule",
-                                JSON.stringify({
-                                    state:
-                                        control.Enable_Charge_Schedule === "enable"
-                                            ? "disable"
-                                            : "enable",
-                                }),
-                            )
-                        }
-                        className={`relative h-5 w-9 rounded-full transition-colors ${control.Enable_Charge_Schedule === "enable"
-                                ? "bg-emerald-600"
-                                : "bg-zinc-600"
-                            }`}
-                    >
-                        <span
-                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${control.Enable_Charge_Schedule === "enable"
-                                    ? "translate-x-4"
-                                    : "translate-x-0.5"
-                                }`}
-                        />
-                    </button>
-                </div>
-                <div className="flex items-center justify-between rounded-lg bg-zinc-800 p-3">
-                    <span className="text-xs text-zinc-400">Discharge Schedule</span>
-                    <button
-                        onClick={() =>
-                            publishControl(
-                                "enableDischargeSchedule",
-                                JSON.stringify({
-                                    state:
-                                        control.Enable_Discharge_Schedule === "enable"
-                                            ? "disable"
-                                            : "enable",
-                                }),
-                            )
-                        }
-                        className={`relative h-5 w-9 rounded-full transition-colors ${control.Enable_Discharge_Schedule === "enable"
-                                ? "bg-emerald-600"
-                                : "bg-zinc-600"
-                            }`}
-                    >
-                        <span
-                            className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform ${control.Enable_Discharge_Schedule === "enable"
-                                    ? "translate-x-4"
-                                    : "translate-x-0.5"
-                                }`}
-                        />
-                    </button>
-                </div>
             </div>
 
             {/* Force Charge / Export / Pause */}
