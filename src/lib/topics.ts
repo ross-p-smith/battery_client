@@ -43,6 +43,12 @@ export const controlTopics = () => {
     setDischargeEnd2: `${root}/setDischargeEnd2`,
     setDischargeStart3: `${root}/setDischargeStart3`,
     setDischargeEnd3: `${root}/setDischargeEnd3`,
+    setChargeTarget1: `${root}/setChargeTarget1`,
+    setChargeTarget2: `${root}/setChargeTarget2`,
+    setChargeTarget3: `${root}/setChargeTarget3`,
+    setDischargeTarget1: `${root}/setDischargeTarget1`,
+    setDischargeTarget2: `${root}/setDischargeTarget2`,
+    setDischargeTarget3: `${root}/setDischargeTarget3`,
     setBatteryMode: `${root}/setBatteryMode`,
     setBatteryPauseMode: `${root}/setBatteryPauseMode`,
     setPauseStart: `${root}/setPauseStart`,
@@ -168,6 +174,30 @@ export const commandMeta: Record<string, CommandMeta> = {
   setDischargeEnd3: {
     label: "Discharge Slot 3 End",
     watchKeys: ["Discharge_end_time_slot_3"],
+  },
+  setChargeTarget1: {
+    label: "Charge Target 1",
+    watchKeys: ["Charge_Target_SOC_1"],
+  },
+  setChargeTarget2: {
+    label: "Charge Target 2",
+    watchKeys: ["Charge_Target_SOC_2"],
+  },
+  setChargeTarget3: {
+    label: "Charge Target 3",
+    watchKeys: ["Charge_Target_SOC_3"],
+  },
+  setDischargeTarget1: {
+    label: "Discharge Target 1",
+    watchKeys: ["Discharge_Target_SOC_1"],
+  },
+  setDischargeTarget2: {
+    label: "Discharge Target 2",
+    watchKeys: ["Discharge_Target_SOC_2"],
+  },
+  setDischargeTarget3: {
+    label: "Discharge Target 3",
+    watchKeys: ["Discharge_Target_SOC_3"],
   },
   enableDischarge: {
     label: "Enable Discharge",

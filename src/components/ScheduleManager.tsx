@@ -122,11 +122,17 @@ export default function ScheduleManager() {
   const handleSaveChargeSlot = (slotNum: number, data: SlotData) => {
     publishControl(`setChargeStart${slotNum}`, data.start);
     publishControl(`setChargeEnd${slotNum}`, data.finish);
+    if (data.targetSoc) {
+      publishControl(`setChargeTarget${slotNum}`, data.targetSoc);
+    }
   };
 
   const handleSaveDischargeSlot = (slotNum: number, data: SlotData) => {
     publishControl(`setDischargeStart${slotNum}`, data.start);
     publishControl(`setDischargeEnd${slotNum}`, data.finish);
+    if (data.targetSoc) {
+      publishControl(`setDischargeTarget${slotNum}`, data.targetSoc);
+    }
   };
 
   return (
