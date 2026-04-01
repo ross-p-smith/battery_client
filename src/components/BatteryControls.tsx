@@ -196,9 +196,7 @@ export default function BatteryControls() {
           ].map(({ value, label }) => (
             <button
               key={value}
-              onClick={() =>
-                publishControl("setBatteryPauseMode", value)
-              }
+              onClick={() => publishControl("setBatteryPauseMode", value)}
               className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
                 control.Battery_pause_mode === value
                   ? "bg-amber-600 text-white"

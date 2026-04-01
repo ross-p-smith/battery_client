@@ -3,11 +3,30 @@
 import { useBattery } from "@/context/BatteryContext";
 import type { NotificationStatus } from "@/lib/types";
 
-const statusConfig: Record<NotificationStatus, { icon: string; color: string; text: string }> = {
-  pending: { icon: "⏳", color: "bg-cyan-900/60 text-cyan-300 border-cyan-800", text: "Sending..." },
-  success: { icon: "✓", color: "bg-emerald-900/60 text-emerald-300 border-emerald-800", text: "Confirmed" },
-  timeout: { icon: "⚠", color: "bg-amber-900/60 text-amber-300 border-amber-800", text: "No response" },
-  error: { icon: "✗", color: "bg-red-900/60 text-red-300 border-red-800", text: "Error" },
+const statusConfig: Record<
+  NotificationStatus,
+  { icon: string; color: string; text: string }
+> = {
+  pending: {
+    icon: "⏳",
+    color: "bg-cyan-900/60 text-cyan-300 border-cyan-800",
+    text: "Sending...",
+  },
+  success: {
+    icon: "✓",
+    color: "bg-emerald-900/60 text-emerald-300 border-emerald-800",
+    text: "Confirmed",
+  },
+  timeout: {
+    icon: "⚠",
+    color: "bg-amber-900/60 text-amber-300 border-amber-800",
+    text: "No response",
+  },
+  error: {
+    icon: "✗",
+    color: "bg-red-900/60 text-red-300 border-red-800",
+    text: "Error",
+  },
 };
 
 export default function NotificationArea() {

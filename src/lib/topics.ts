@@ -67,26 +67,80 @@ export interface CommandMeta {
 export const commandMeta: Record<string, CommandMeta> = {
   setBatteryMode: { label: "Battery Mode", watchKeys: ["Mode"] },
   setEcoMode: { label: "Eco Mode", watchKeys: ["Eco_Mode"] },
-  setBatteryPauseMode: { label: "Pause Mode", watchKeys: ["Battery_pause_mode"] },
+  setBatteryPauseMode: {
+    label: "Pause Mode",
+    watchKeys: ["Battery_pause_mode"],
+  },
   setChargeRate: { label: "Charge Rate", watchKeys: ["Battery_Charge_Rate"] },
-  setDischargeRate: { label: "Discharge Rate", watchKeys: ["Battery_Discharge_Rate"] },
-  setBatteryReserve: { label: "Battery Reserve", watchKeys: ["Battery_Power_Reserve"] },
+  setDischargeRate: {
+    label: "Discharge Rate",
+    watchKeys: ["Battery_Discharge_Rate"],
+  },
+  setBatteryReserve: {
+    label: "Battery Reserve",
+    watchKeys: ["Battery_Power_Reserve"],
+  },
   setChargeTarget: { label: "Charge Target", watchKeys: ["Target_SOC"] },
-  enableChargeSchedule: { label: "Charge Schedule", watchKeys: ["Enable_Charge_Schedule"] },
-  enableDischargeSchedule: { label: "Discharge Schedule", watchKeys: ["Enable_Discharge_Schedule"] },
-  enableChargeTarget: { label: "Charge Target", watchKeys: ["Enable_Charge_Target"] },
-  disableChargeTarget: { label: "Charge Target", watchKeys: ["Enable_Charge_Target"] },
+  enableChargeSchedule: {
+    label: "Charge Schedule",
+    watchKeys: ["Enable_Charge_Schedule"],
+  },
+  enableDischargeSchedule: {
+    label: "Discharge Schedule",
+    watchKeys: ["Enable_Discharge_Schedule"],
+  },
+  enableChargeTarget: {
+    label: "Charge Target",
+    watchKeys: ["Enable_Charge_Target"],
+  },
+  disableChargeTarget: {
+    label: "Charge Target",
+    watchKeys: ["Enable_Charge_Target"],
+  },
   forceCharge: { label: "Force Charge", watchKeys: ["Force_Charge"] },
   forceExport: { label: "Force Export", watchKeys: ["Force_Export"] },
-  tempPauseCharge: { label: "Temp Pause Charge", watchKeys: ["Temp_Pause_Charge"] },
-  tempPauseDischarge: { label: "Temp Pause Discharge", watchKeys: ["Temp_Pause_Discharge"] },
-  setPauseStart: { label: "Pause Start", watchKeys: ["Battery_pause_start_time_slot"] },
-  setPauseEnd: { label: "Pause End", watchKeys: ["Battery_pause_end_time_slot"] },
-  setChargeSlot1: { label: "Charge Slot 1", watchKeys: ["Charge_start_time_slot_1", "Charge_end_time_slot_1"] },
-  setChargeSlot2: { label: "Charge Slot 2", watchKeys: ["Charge_start_time_slot_2", "Charge_end_time_slot_2"] },
-  setChargeSlot3: { label: "Charge Slot 3", watchKeys: ["Charge_start_time_slot_3", "Charge_end_time_slot_3"] },
-  setDischargeSlot1: { label: "Discharge Slot 1", watchKeys: ["Discharge_start_time_slot_1", "Discharge_end_time_slot_1"] },
-  setDischargeSlot2: { label: "Discharge Slot 2", watchKeys: ["Discharge_start_time_slot_2", "Discharge_end_time_slot_2"] },
-  setDischargeSlot3: { label: "Discharge Slot 3", watchKeys: ["Discharge_start_time_slot_3", "Discharge_end_time_slot_3"] },
-  enableDischarge: { label: "Enable Discharge", watchKeys: ["Enable_Discharge_Schedule"] },
+  tempPauseCharge: {
+    label: "Temp Pause Charge",
+    watchKeys: ["Temp_Pause_Charge"],
+  },
+  tempPauseDischarge: {
+    label: "Temp Pause Discharge",
+    watchKeys: ["Temp_Pause_Discharge"],
+  },
+  setPauseStart: {
+    label: "Pause Start",
+    watchKeys: ["Battery_pause_start_time_slot"],
+  },
+  setPauseEnd: {
+    label: "Pause End",
+    watchKeys: ["Battery_pause_end_time_slot"],
+  },
+  setChargeSlot1: {
+    label: "Charge Slot 1",
+    watchKeys: ["Charge_start_time_slot_1", "Charge_end_time_slot_1"],
+  },
+  setChargeSlot2: {
+    label: "Charge Slot 2",
+    watchKeys: ["Charge_start_time_slot_2", "Charge_end_time_slot_2"],
+  },
+  setChargeSlot3: {
+    label: "Charge Slot 3",
+    watchKeys: ["Charge_start_time_slot_3", "Charge_end_time_slot_3"],
+  },
+  setDischargeSlot1: {
+    label: "Discharge Slot 1",
+    watchKeys: ["Discharge_start_time_slot_1", "Discharge_end_time_slot_1"],
+  },
+  setDischargeSlot2: {
+    label: "Discharge Slot 2",
+    watchKeys: ["Discharge_start_time_slot_2", "Discharge_end_time_slot_2"],
+  },
+  setDischargeSlot3: {
+    label: "Discharge Slot 3",
+    watchKeys: ["Discharge_start_time_slot_3", "Discharge_end_time_slot_3"],
+  },
+  enableDischarge: {
+    label: "Enable Discharge",
+    watchKeys: ["Enable_Discharge_Schedule"],
+  },
 };
