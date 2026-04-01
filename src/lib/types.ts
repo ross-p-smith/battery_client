@@ -176,4 +176,17 @@ export interface BatteryState {
     stats: StatsData;
     isConnected: boolean;
     lastUpdate: string | null;
+    notifications: CommandNotification[];
+}
+
+export type NotificationStatus = "pending" | "success" | "timeout" | "error";
+
+export interface CommandNotification {
+  id: string;
+  command: string;
+  label: string;
+  status: NotificationStatus;
+  timestamp: number;
+  /** The control key(s) to watch for confirmation */
+  watchKeys: string[];
 }

@@ -6,6 +6,7 @@ import BatteryGauge from "@/components/BatteryGauge";
 import EnergyStats from "@/components/EnergyStats";
 import BatteryControls from "@/components/BatteryControls";
 import ScheduleManager from "@/components/ScheduleManager";
+import NotificationArea from "@/components/NotificationArea";
 import { config } from "@/lib/config";
 
 export default function Home() {
@@ -42,13 +43,15 @@ export default function Home() {
         </div>
       </header>
 
+      <NotificationArea />
+
       {/* Main content */}
       <main className="mx-auto w-full max-w-7xl flex-1 p-6">
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Left column — Power & Battery */}
+          {/* Left column — Battery & Power */}
           <div className="space-y-6">
-            <PowerFlowDiagram />
             <BatteryGauge />
+            <PowerFlowDiagram />
           </div>
 
           {/* Center column — Energy Stats */}

@@ -188,26 +188,26 @@ export default function BatteryControls() {
       <div className="mb-4">
         <div className="mb-2 text-xs text-zinc-400">Pause Mode</div>
         <div className="flex flex-wrap gap-2">
-          {["Disabled", "PauseCharge", "PauseDischarge", "PauseBoth"].map(
-            (mode) => (
-              <button
-                key={mode}
-                onClick={() =>
-                  publishControl(
-                    "setBatteryPauseMode",
-                    JSON.stringify({ state: mode }),
-                  )
-                }
-                className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
-                  control.Battery_pause_mode === mode
-                    ? "bg-amber-600 text-white"
-                    : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
-                }`}
-              >
-                {mode}
-              </button>
-            ),
-          )}
+          {[
+            { value: "Disabled", label: "Disabled" },
+            { value: "PauseCharge", label: "Pause Charge" },
+            { value: "PauseDischarge", label: "Pause Discharge" },
+            { value: "PauseBoth", label: "Pause Both" },
+          ].map(({ value, label }) => (
+            <button
+              key={value}
+              onClick={() =>
+                publishControl("setBatteryPauseMode", value)
+              }
+              className={`rounded px-3 py-1.5 text-xs font-medium transition-colors ${
+                control.Battery_pause_mode === value
+                  ? "bg-amber-600 text-white"
+                  : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
         </div>
       </div>
 

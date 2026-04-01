@@ -9,9 +9,10 @@ import {
     type ReactNode,
 } from "react";
 import { useMqtt } from "@/lib/mqtt";
-import { dataTopics, controlTopics, parseTopicPath } from "@/lib/topics";
+import { dataTopics, controlTopics, parseTopicPath, commandMeta } from "@/lib/topics";
 import type {
     BatteryState,
+    CommandNotification,
     PowerFlows,
     PowerReadings,
     EnergyToday,
@@ -86,11 +87,15 @@ const defaultState: BatteryState = {
     },
     isConnected: false,
     lastUpdate: null,
+    notifications: [],
 };
 
 type Action =
     | { type: "SET_CONNECTED"; connected: boolean }
-    | { type: "MQTT_MESSAGE"; path: string[]; value: string };
+    | { type: "MQTT_MESSAGE"; path: string[]; value: string }
+    | { type: "COMMAND_SENT"; command: string; label: string; watchKeys: string[] }
+    | { type: "COMMAND_TIMEOUT"; id: string }
+    | { type: "DISMISS_NOTIFICATION"; id: string };
 
 function tryParseValue(raw: string): string | number | boolean {
     if (raw === "true") return true;
@@ -180,10 +185,16 @@ function reducer(state: BatteryState, action: Action): BatteryState {
                 case "Control": {
                     const key = path[1];
                     if (!key) return state;
+                    const updatedNotifications = state.notifications.map((n) =>
+                        n.status === "pending" && n.watchKeys.includes(key)
+                            ? { ...n, status: "success" as const }
+                            : n
+                    );
                     return {
                         ...state,
                         lastUpdate: now,
                         control: { ...state.control, [key]: parsed },
+                        notifications: updatedNotifications,
                     };
                 }
 
@@ -199,10 +210,16 @@ function reducer(state: BatteryState, action: Action): BatteryState {
                 case "Timeslots": {
                     const key = path[1];
                     if (!key) return state;
+                    const updatedNotifications = state.notifications.map((n) =>
+                        n.status === "pending" && n.watchKeys.includes(key)
+                            ? { ...n, status: "success" as const }
+                            : n
+                    );
                     return {
                         ...state,
                         lastUpdate: now,
                         timeslots: { ...state.timeslots, [key]: value },
+                        notifications: updatedNotifications,
                     };
                 }
 
@@ -219,6 +236,37 @@ function reducer(state: BatteryState, action: Action): BatteryState {
                 default:
                     return state;
             }
+        }
+
+        case "COMMAND_SENT": {
+            const notification: CommandNotification = {
+                id: `${action.command}-${Date.now()}`,
+                command: action.command,
+                label: action.label,
+                status: "pending",
+                timestamp: Date.now(),
+                watchKeys: action.watchKeys,
+            };
+            return {
+                ...state,
+                notifications: [...state.notifications, notification],
+            };
+        }
+
+        case "COMMAND_TIMEOUT": {
+            return {
+                ...state,
+                notifications: state.notifications.map((n) =>
+                    n.id === action.id ? { ...n, status: "timeout" as const } : n
+                ),
+            };
+        }
+
+        case "DISMISS_NOTIFICATION": {
+            return {
+                ...state,
+                notifications: state.notifications.filter((n) => n.id !== action.id),
+            };
         }
 
         default:
@@ -241,6 +289,7 @@ function deepSet(obj: any, path: string[], value: unknown): any {
 
 interface BatteryContextValue extends BatteryState {
     publishControl: (command: string, payload: string) => void;
+    dismissNotification: (id: string) => void;
 }
 
 const BatteryContext = createContext<BatteryContextValue | null>(null);
@@ -270,14 +319,52 @@ export function BatteryProvider({ children }: { children: ReactNode }) {
             const topics = controlTopics();
             const topic = topics[command as keyof typeof topics];
             if (topic) {
+                const meta = commandMeta[command];
+                if (meta) {
+                    dispatch({
+                        type: "COMMAND_SENT",
+                        command,
+                        label: meta.label,
+                        watchKeys: meta.watchKeys,
+                    });
+                }
                 publish(topic, payload);
             }
         },
         [publish],
     );
 
+    const dismissNotification = useCallback((id: string) => {
+        dispatch({ type: "DISMISS_NOTIFICATION", id });
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = Date.now();
+            state.notifications.forEach((n) => {
+                if (n.status === "pending" && now - n.timestamp > 15000) {
+                    dispatch({ type: "COMMAND_TIMEOUT", id: n.id });
+                }
+            });
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [state.notifications]);
+
+    useEffect(() => {
+        const timers: ReturnType<typeof setTimeout>[] = [];
+        state.notifications.forEach((n) => {
+            if (n.status !== "pending") {
+                const timer = setTimeout(() => {
+                    dispatch({ type: "DISMISS_NOTIFICATION", id: n.id });
+                }, 5000);
+                timers.push(timer);
+            }
+        });
+        return () => timers.forEach(clearTimeout);
+    }, [state.notifications]);
+
     return (
-        <BatteryContext.Provider value={{ ...state, publishControl }}>
+        <BatteryContext.Provider value={{ ...state, publishControl, dismissNotification }}>
             {children}
         </BatteryContext.Provider>
     );
