@@ -31,12 +31,18 @@ export const controlTopics = () => {
     setDischargeRate: `${root}/setDischargeRate`,
     setChargeTarget: `${root}/setChargeTarget`,
     setBatteryReserve: `${root}/setBatteryReserve`,
-    setChargeSlot1: `${root}/setChargeSlot1`,
-    setChargeSlot2: `${root}/setChargeSlot2`,
-    setChargeSlot3: `${root}/setChargeSlot3`,
-    setDischargeSlot1: `${root}/setDischargeSlot1`,
-    setDischargeSlot2: `${root}/setDischargeSlot2`,
-    setDischargeSlot3: `${root}/setDischargeSlot3`,
+    setChargeStart1: `${root}/setChargeStart1`,
+    setChargeEnd1: `${root}/setChargeEnd1`,
+    setChargeStart2: `${root}/setChargeStart2`,
+    setChargeEnd2: `${root}/setChargeEnd2`,
+    setChargeStart3: `${root}/setChargeStart3`,
+    setChargeEnd3: `${root}/setChargeEnd3`,
+    setDischargeStart1: `${root}/setDischargeStart1`,
+    setDischargeEnd1: `${root}/setDischargeEnd1`,
+    setDischargeStart2: `${root}/setDischargeStart2`,
+    setDischargeEnd2: `${root}/setDischargeEnd2`,
+    setDischargeStart3: `${root}/setDischargeStart3`,
+    setDischargeEnd3: `${root}/setDischargeEnd3`,
     setBatteryMode: `${root}/setBatteryMode`,
     setBatteryPauseMode: `${root}/setBatteryPauseMode`,
     setPauseStart: `${root}/setPauseStart`,
@@ -115,29 +121,53 @@ export const commandMeta: Record<string, CommandMeta> = {
     label: "Pause End",
     watchKeys: ["Battery_pause_end_time_slot"],
   },
-  setChargeSlot1: {
-    label: "Charge Slot 1",
-    watchKeys: ["Charge_start_time_slot_1", "Charge_end_time_slot_1"],
+  setChargeStart1: {
+    label: "Charge Slot 1 Start",
+    watchKeys: ["Charge_start_time_slot_1"],
   },
-  setChargeSlot2: {
-    label: "Charge Slot 2",
-    watchKeys: ["Charge_start_time_slot_2", "Charge_end_time_slot_2"],
+  setChargeEnd1: {
+    label: "Charge Slot 1 End",
+    watchKeys: ["Charge_end_time_slot_1"],
   },
-  setChargeSlot3: {
-    label: "Charge Slot 3",
-    watchKeys: ["Charge_start_time_slot_3", "Charge_end_time_slot_3"],
+  setChargeStart2: {
+    label: "Charge Slot 2 Start",
+    watchKeys: ["Charge_start_time_slot_2"],
   },
-  setDischargeSlot1: {
-    label: "Discharge Slot 1",
-    watchKeys: ["Discharge_start_time_slot_1", "Discharge_end_time_slot_1"],
+  setChargeEnd2: {
+    label: "Charge Slot 2 End",
+    watchKeys: ["Charge_end_time_slot_2"],
   },
-  setDischargeSlot2: {
-    label: "Discharge Slot 2",
-    watchKeys: ["Discharge_start_time_slot_2", "Discharge_end_time_slot_2"],
+  setChargeStart3: {
+    label: "Charge Slot 3 Start",
+    watchKeys: ["Charge_start_time_slot_3"],
   },
-  setDischargeSlot3: {
-    label: "Discharge Slot 3",
-    watchKeys: ["Discharge_start_time_slot_3", "Discharge_end_time_slot_3"],
+  setChargeEnd3: {
+    label: "Charge Slot 3 End",
+    watchKeys: ["Charge_end_time_slot_3"],
+  },
+  setDischargeStart1: {
+    label: "Discharge Slot 1 Start",
+    watchKeys: ["Discharge_start_time_slot_1"],
+  },
+  setDischargeEnd1: {
+    label: "Discharge Slot 1 End",
+    watchKeys: ["Discharge_end_time_slot_1"],
+  },
+  setDischargeStart2: {
+    label: "Discharge Slot 2 Start",
+    watchKeys: ["Discharge_start_time_slot_2"],
+  },
+  setDischargeEnd2: {
+    label: "Discharge Slot 2 End",
+    watchKeys: ["Discharge_end_time_slot_2"],
+  },
+  setDischargeStart3: {
+    label: "Discharge Slot 3 Start",
+    watchKeys: ["Discharge_start_time_slot_3"],
+  },
+  setDischargeEnd3: {
+    label: "Discharge Slot 3 End",
+    watchKeys: ["Discharge_end_time_slot_3"],
   },
   enableDischarge: {
     label: "Enable Discharge",

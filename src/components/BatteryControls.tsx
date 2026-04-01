@@ -145,9 +145,7 @@ export default function BatteryControls() {
           {["Eco", "Timed Demand", "Timed Export"].map((mode) => (
             <button
               key={mode}
-              onClick={() =>
-                publishControl("setBatteryMode", JSON.stringify({ mode }))
-              }
+              onClick={() => publishControl("setBatteryMode", mode)}
               className={`rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
                 control.Mode === mode
                   ? "bg-emerald-600 text-white"
@@ -167,9 +165,7 @@ export default function BatteryControls() {
           onClick={() =>
             publishControl(
               "setEcoMode",
-              JSON.stringify({
-                state: control.Eco_Mode === "enable" ? "disable" : "enable",
-              }),
+              control.Eco_Mode === "enable" ? "disable" : "enable",
             )
           }
           className={`relative h-6 w-11 rounded-full transition-colors ${
@@ -260,12 +256,7 @@ export default function BatteryControls() {
           max={maxBatRate}
           step={100}
           unit=" W"
-          onCommit={(v) =>
-            publishControl(
-              "setChargeRate",
-              JSON.stringify({ chargeRate: String(v) }),
-            )
-          }
+          onCommit={(v) => publishControl("setChargeRate", String(v))}
         />
         <SliderControl
           label="Discharge Rate"
@@ -274,12 +265,7 @@ export default function BatteryControls() {
           max={maxBatRate}
           step={100}
           unit=" W"
-          onCommit={(v) =>
-            publishControl(
-              "setDischargeRate",
-              JSON.stringify({ dischargeRate: String(v) }),
-            )
-          }
+          onCommit={(v) => publishControl("setDischargeRate", String(v))}
         />
         <SliderControl
           label="Battery Reserve"
@@ -288,12 +274,7 @@ export default function BatteryControls() {
           max={100}
           step={1}
           unit="%"
-          onCommit={(v) =>
-            publishControl(
-              "setBatteryReserve",
-              JSON.stringify({ reservePercent: String(v) }),
-            )
-          }
+          onCommit={(v) => publishControl("setBatteryReserve", String(v))}
         />
         <SliderControl
           label="Charge Target SOC"
@@ -302,12 +283,7 @@ export default function BatteryControls() {
           max={100}
           step={1}
           unit="%"
-          onCommit={(v) =>
-            publishControl(
-              "setChargeTarget",
-              JSON.stringify({ chargeToPercent: String(v) }),
-            )
-          }
+          onCommit={(v) => publishControl("setChargeTarget", String(v))}
         />
       </div>
 

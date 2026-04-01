@@ -16,8 +16,8 @@ function parseTimeSlot(timeStr: string): string {
 }
 
 function formatTimeForCommand(time: string): string {
-  // "HH:MM" → "HHMM"
-  return time.replace(":", "");
+  // GivTCP expects "HH:MM" format via MQTT
+  return time.slice(0, 5);
 }
 
 function SlotEditor({
@@ -120,25 +120,13 @@ export default function ScheduleManager() {
   const { timeslots, control, publishControl } = useBattery();
 
   const handleSaveChargeSlot = (slotNum: number, data: SlotData) => {
-    const payload: Record<string, string> = {
-      start: data.start,
-      finish: data.finish,
-    };
-    if (data.targetSoc) {
-      payload.chargeToPercent = data.targetSoc;
-    }
-    publishControl(`setChargeSlot${slotNum}`, JSON.stringify(payload));
+    publishControl(`setChargeStart${slotNum}`, data.start);
+    publishControl(`setChargeEnd${slotNum}`, data.finish);
   };
 
   const handleSaveDischargeSlot = (slotNum: number, data: SlotData) => {
-    const payload: Record<string, string> = {
-      start: data.start,
-      finish: data.finish,
-    };
-    if (data.targetSoc) {
-      payload.dischargeToPercent = data.targetSoc;
-    }
-    publishControl(`setDischargeSlot${slotNum}`, JSON.stringify(payload));
+    publishControl(`setDischargeStart${slotNum}`, data.start);
+    publishControl(`setDischargeEnd${slotNum}`, data.finish);
   };
 
   return (
@@ -157,12 +145,9 @@ export default function ScheduleManager() {
               onClick={() =>
                 publishControl(
                   "enableChargeSchedule",
-                  JSON.stringify({
-                    state:
-                      control.Enable_Charge_Schedule === "enable"
-                        ? "disable"
-                        : "enable",
-                  }),
+                  control.Enable_Charge_Schedule === "enable"
+                    ? "disable"
+                    : "enable",
                 )
               }
               className={`relative h-5 w-9 rounded-full transition-colors ${
@@ -215,12 +200,9 @@ export default function ScheduleManager() {
               onClick={() =>
                 publishControl(
                   "enableDischargeSchedule",
-                  JSON.stringify({
-                    state:
-                      control.Enable_Discharge_Schedule === "enable"
-                        ? "disable"
-                        : "enable",
-                  }),
+                  control.Enable_Discharge_Schedule === "enable"
+                    ? "disable"
+                    : "enable",
                 )
               }
               className={`relative h-5 w-9 rounded-full transition-colors ${
