@@ -138,10 +138,22 @@ export interface Timeslots {
   Battery_pause_end_time_slot: string;
   Charge_start_time_slot_1: string;
   Charge_end_time_slot_1: string;
+  Charge_start_time_slot_2: string;
+  Charge_end_time_slot_2: string;
+  Charge_start_time_slot_3: string;
+  Charge_end_time_slot_3: string;
+  Charge_Target_SOC_1: string;
+  Charge_Target_SOC_2: string;
+  Charge_Target_SOC_3: string;
   Discharge_start_time_slot_1: string;
   Discharge_end_time_slot_1: string;
   Discharge_start_time_slot_2: string;
   Discharge_end_time_slot_2: string;
+  Discharge_start_time_slot_3: string;
+  Discharge_end_time_slot_3: string;
+  Discharge_Target_SOC_1: string;
+  Discharge_Target_SOC_2: string;
+  Discharge_Target_SOC_3: string;
   [key: string]: string;
 }
 
