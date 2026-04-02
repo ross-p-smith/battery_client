@@ -244,10 +244,19 @@ interface TariffResult {
   results: { value_inc_vat: number; valid_from: string }[];
 }
 
+/** Validate that a code contains only safe characters (alphanumeric, hyphens). */
+function isSafeCode(code: string): boolean {
+  return /^[A-Za-z0-9-]+$/.test(code);
+}
+
 export async function getTariffRates(
   productCode: string,
   tariffCode: string,
 ): Promise<OctopusTariffRates> {
+  if (!isSafeCode(productCode) || !isSafeCode(tariffCode)) {
+    throw new Error("Invalid product or tariff code");
+  }
+
   const base = `${OCTOPUS_REST_URL}/products/${productCode}/electricity-tariffs/${tariffCode}`;
 
   const [evOffPeak, evPeak, standing] = await Promise.all([

@@ -17,6 +17,14 @@ import type {
 } from "@/lib/octopus-types";
 
 // ---------------------------------------------------------------------------
+// Polling intervals (ms)
+// ---------------------------------------------------------------------------
+
+const DISPATCH_POLL_MS = 300_000; // 5 minutes
+const TARIFF_POLL_MS = 3_600_000; // 1 hour
+const DEVICE_POLL_MS = 1_800_000; // 30 minutes
+
+// ---------------------------------------------------------------------------
 // Default state
 // ---------------------------------------------------------------------------
 
@@ -100,7 +108,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
     }
 
     fetchDispatches();
-    const id = setInterval(fetchDispatches, 300_000); // 5 min
+    const id = setInterval(fetchDispatches, DISPATCH_POLL_MS);
     return () => {
       active = false;
       clearInterval(id);
@@ -128,7 +136,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
     }
 
     fetchTariff();
-    const id = setInterval(fetchTariff, 3_600_000); // 1 hour
+    const id = setInterval(fetchTariff, TARIFF_POLL_MS);
     return () => {
       active = false;
       clearInterval(id);
@@ -156,7 +164,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
     }
 
     fetchDevice();
-    const id = setInterval(fetchDevice, 1_800_000); // 30 min
+    const id = setInterval(fetchDevice, DEVICE_POLL_MS);
     return () => {
       active = false;
       clearInterval(id);
