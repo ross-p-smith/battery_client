@@ -40,13 +40,19 @@ function SlotEditor({
   const [start, setStart] = useState(currentStart);
   const [finish, setFinish] = useState(currentFinish);
   const [targetSoc, setTargetSoc] = useState(currentTargetSoc);
+  const [savedValues, setSavedValues] = useState<SlotData | null>(null);
+
+  const baselineStart = savedValues ? savedValues.start : currentStart;
+  const baselineFinish = savedValues ? savedValues.finish : currentFinish;
+  const baselineSoc = savedValues ? savedValues.targetSoc : currentTargetSoc;
   const modified =
-    start !== currentStart || finish !== currentFinish || targetSoc !== currentTargetSoc;
+    start !== baselineStart || finish !== baselineFinish || targetSoc !== baselineSoc;
 
   useEffect(() => {
     setStart(currentStart);
     setFinish(currentFinish);
     setTargetSoc(currentTargetSoc);
+    setSavedValues(null);
   }, [currentStart, currentFinish, currentTargetSoc]);
 
   const label = type === "charge" ? "Charge" : "Discharge";
@@ -100,6 +106,7 @@ function SlotEditor({
               finish: formatTimeForCommand(finish),
               targetSoc,
             });
+            setSavedValues({ start, finish, targetSoc });
           }}
           disabled={!modified}
           className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
