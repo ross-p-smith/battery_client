@@ -46,7 +46,9 @@ function SlotEditor({
   const baselineFinish = savedValues ? savedValues.finish : currentFinish;
   const baselineSoc = savedValues ? savedValues.targetSoc : currentTargetSoc;
   const modified =
-    start !== baselineStart || finish !== baselineFinish || targetSoc !== baselineSoc;
+    start !== baselineStart ||
+    finish !== baselineFinish ||
+    targetSoc !== baselineSoc;
 
   useEffect(() => {
     setStart(currentStart);
