@@ -5,9 +5,9 @@ import TariffRates from "./TariffRates";
 import DispatchTimeline from "./DispatchTimeline";
 
 export default function OctopusIntelligent() {
-  const { isLoading, error } = useOctopus();
+  const { isLoading, error, tariff, refresh } = useOctopus();
 
-  if (isLoading) {
+  if (isLoading && !tariff) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse rounded-xl border border-zinc-800 bg-zinc-900 p-5">
@@ -26,25 +26,24 @@ export default function OctopusIntelligent() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-        <h2 className="mb-2 text-lg font-semibold text-zinc-100">
-          Intelligent Go
-        </h2>
-        <p className="text-sm text-red-400">{error}</p>
-        <button
-          className="mt-3 rounded-lg bg-zinc-800 px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-700"
-          onClick={() => window.location.reload()}
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-zinc-100">Intelligent Go</h2>
+        <button
+          onClick={refresh}
+          disabled={isLoading}
+          className="rounded-lg bg-zinc-800 px-3 py-1.5 text-xs text-zinc-400 transition-colors hover:bg-zinc-700 hover:text-zinc-200 disabled:opacity-50"
+          title="Refresh Octopus data"
+        >
+          {isLoading ? "Refreshing…" : "Refresh"}
+        </button>
+      </div>
+      {error && (
+        <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
+          <p className="text-sm text-red-400">{error}</p>
+        </div>
+      )}
       <TariffRates />
       <DispatchTimeline />
     </div>

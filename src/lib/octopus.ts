@@ -60,8 +60,7 @@ export async function getToken(): Promise<string> {
     );
   }
 
-  const { token, refreshToken, refreshExpiresIn } =
-    json.data.obtainKrakenToken;
+  const { token, refreshToken, refreshExpiresIn } = json.data.obtainKrakenToken;
 
   tokenCache = {
     token,
@@ -124,8 +123,7 @@ export async function getAccountInfo(): Promise<AccountInfo> {
 
   const account = process.env.OCTOPUS_ACCOUNT;
   const apiKey = process.env.OCTOPUS_API_KEY;
-  const authHeader =
-    "Basic " + Buffer.from(`${apiKey}:`).toString("base64");
+  const authHeader = "Basic " + Buffer.from(`${apiKey}:`).toString("base64");
 
   const res = await fetch(`${OCTOPUS_REST_URL}/accounts/${account}/`, {
     headers: { Authorization: authHeader },
@@ -170,22 +168,24 @@ export async function getAccountInfo(): Promise<AccountInfo> {
 // ---------------------------------------------------------------------------
 
 export async function getPlannedDispatches(
-  deviceId: string,
+  accountNumber: string,
 ): Promise<OctopusDispatch[]> {
   const data = await graphqlQuery<{
-    flexPlannedDispatches: OctopusDispatch[];
+    plannedDispatches: OctopusDispatch[];
   }>(
-    `query FlexPlannedDispatches($deviceId: String!) {
-      flexPlannedDispatches(deviceId: $deviceId) {
+    `query PlannedDispatches($accountNumber: String!) {
+      plannedDispatches(accountNumber: $accountNumber) {
         start
         end
-        type
-        energyAddedKwh
+        delta
+        meta {
+          location
+        }
       }
     }`,
-    { deviceId },
+    { accountNumber },
   );
-  return data.flexPlannedDispatches;
+  return data.plannedDispatches;
 }
 
 // ---------------------------------------------------------------------------
@@ -193,20 +193,22 @@ export async function getPlannedDispatches(
 // ---------------------------------------------------------------------------
 
 export async function getCompletedDispatches(
-  deviceId: string,
+  accountNumber: string,
 ): Promise<CompletedDispatch[]> {
   const data = await graphqlQuery<{
     completedDispatches: CompletedDispatch[];
   }>(
-    `query CompletedDispatches($deviceId: String!) {
-      completedDispatches(deviceId: $deviceId) {
+    `query CompletedDispatches($accountNumber: String!) {
+      completedDispatches(accountNumber: $accountNumber) {
         start
         end
         delta
-        meta
+        meta {
+          location
+        }
       }
     }`,
-    { deviceId },
+    { accountNumber },
   );
   return data.completedDispatches;
 }
@@ -216,22 +218,36 @@ export async function getCompletedDispatches(
 // ---------------------------------------------------------------------------
 
 export async function getDevices(): Promise<OctopusDevice[]> {
+  const accountNumber = process.env.OCTOPUS_ACCOUNT;
+  if (!accountNumber) throw new Error("OCTOPUS_ACCOUNT not configured");
+
   const data = await graphqlQuery<{ devices: OctopusDevice[] }>(
-    `query Devices {
-      devices {
+    `query Devices($accountNumber: String!) {
+      devices(accountNumber: $accountNumber) {
         id
-        make
-        model
         provider
-        status
-        chargingPreferences {
-          weekdayTargetTime
-          weekdayTargetSoc
-          weekendTargetTime
-          weekendTargetSoc
+        ... on SmartFlexVehicle {
+          make
+          model
+          status { current }
+          chargingPreferences {
+            weekdayTargetTime
+            weekdayTargetSoc
+            weekendTargetTime
+            weekendTargetSoc
+          }
+        }
+        ... on SmartFlexChargePoint {
+          make
+          model
+          status { current }
+        }
+        ... on SmartFlexBattery {
+          status { current }
         }
       }
     }`,
+    { accountNumber },
   );
   return data.devices;
 }
@@ -241,12 +257,26 @@ export async function getDevices(): Promise<OctopusDevice[]> {
 // ---------------------------------------------------------------------------
 
 interface TariffResult {
-  results: { value_inc_vat: number; valid_from: string }[];
+  results: {
+    value_inc_vat: number;
+    valid_from: string;
+    valid_to: string | null;
+  }[];
 }
 
 /** Validate that a code contains only safe characters (alphanumeric, hyphens). */
 function isSafeCode(code: string): boolean {
   return /^[A-Za-z0-9-]+$/.test(code);
+}
+
+/** Format an ISO timestamp's time portion as HH:MM in local UK time. */
+function toTimeString(iso: string): string {
+  const d = new Date(iso);
+  return d.toLocaleTimeString("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/London",
+  });
 }
 
 export async function getTariffRates(
@@ -259,7 +289,9 @@ export async function getTariffRates(
 
   const base = `${OCTOPUS_REST_URL}/products/${productCode}/electricity-tariffs/${tariffCode}`;
 
-  const [evOffPeak, evPeak, standing] = await Promise.all([
+  // Try EV-specific endpoints first; fall back to standard-unit-rates for
+  // Intelligent tariffs that publish time-of-use bands there instead.
+  const [evOffPeak, evPeak, standing, standard] = await Promise.all([
     fetch(`${base}/ev-device-off-peak-unit-rates/`).then(
       (r) => r.json() as Promise<TariffResult>,
     ),
@@ -269,12 +301,52 @@ export async function getTariffRates(
     fetch(`${base}/standing-charges/`).then(
       (r) => r.json() as Promise<TariffResult>,
     ),
+    fetch(`${base}/standard-unit-rates/?page_size=48`).then(
+      (r) => r.json() as Promise<TariffResult>,
+    ),
   ]);
 
+  const hasEvRates =
+    (evOffPeak.results?.length ?? 0) > 0 && (evPeak.results?.length ?? 0) > 0;
+
+  if (hasEvRates) {
+    return {
+      evOffPeakRate: evOffPeak.results[0].value_inc_vat,
+      evPeakRate: evPeak.results[0].value_inc_vat,
+      standingCharge: standing.results?.[0]?.value_inc_vat ?? 0,
+      offPeakWindow: { start: "23:30", end: "05:30" },
+    };
+  }
+
+  // Derive off-peak / peak from standard-unit-rates time-of-use bands.
+  // The API returns bands for multiple days sorted newest-first.  We take
+  // the upcoming 24 h of bands so we always see both off-peak and peak
+  // regardless of the current time of day.
+  const now = new Date();
+  const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+  const upcoming = (standard.results ?? []).filter(
+    (r) =>
+      new Date(r.valid_from) < tomorrow &&
+      (r.valid_to === null || new Date(r.valid_to) > now),
+  );
+
+  if (upcoming.length === 0) {
+    throw new Error("No current standard unit rates found for tariff");
+  }
+
+  const sorted = [...upcoming].sort(
+    (a, b) => a.value_inc_vat - b.value_inc_vat,
+  );
+  const offPeak = sorted[0];
+  const peak = sorted[sorted.length - 1];
+
   return {
-    evOffPeakRate: evOffPeak.results[0]?.value_inc_vat ?? 0,
-    evPeakRate: evPeak.results[0]?.value_inc_vat ?? 0,
-    standingCharge: standing.results[0]?.value_inc_vat ?? 0,
-    offPeakWindow: { start: "23:30", end: "05:30" },
+    evOffPeakRate: offPeak.value_inc_vat,
+    evPeakRate: peak.value_inc_vat,
+    standingCharge: standing.results?.[0]?.value_inc_vat ?? 0,
+    offPeakWindow: {
+      start: toTimeString(offPeak.valid_from),
+      end: offPeak.valid_to ? toTimeString(offPeak.valid_to) : "05:30",
+    },
   };
 }

@@ -1,32 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getPlannedDispatches,
-  getCompletedDispatches,
-  getDevices,
-} from "@/lib/octopus";
+import { getPlannedDispatches, getCompletedDispatches } from "@/lib/octopus";
 
 export async function GET(request: NextRequest) {
   try {
-    let deviceId = request.nextUrl.searchParams.get("deviceId");
+    const accountNumber =
+      request.nextUrl.searchParams.get("accountNumber") ??
+      process.env.OCTOPUS_ACCOUNT;
 
-    if (!deviceId) {
-      const devices = await getDevices();
-      if (devices.length === 0) {
-        return NextResponse.json(
-          { error: "No SmartFlex device found" },
-          { status: 404 },
-        );
-      }
-      deviceId = devices[0].id;
+    if (!accountNumber) {
+      return NextResponse.json(
+        { error: "OCTOPUS_ACCOUNT not configured" },
+        { status: 500 },
+      );
     }
 
     const [planned, completed] = await Promise.all([
-      getPlannedDispatches(deviceId),
-      getCompletedDispatches(deviceId),
+      getPlannedDispatches(accountNumber),
+      getCompletedDispatches(accountNumber),
     ]);
 
     return NextResponse.json(
-      { planned, completed, deviceId },
+      { planned, completed },
       {
         headers: { "Cache-Control": "private, max-age=120" },
       },

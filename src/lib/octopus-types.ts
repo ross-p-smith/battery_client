@@ -2,8 +2,8 @@
 export interface OctopusDispatch {
   start: string;
   end: string;
-  type: "SMART" | "BOOST" | "TEST";
-  energyAddedKwh: number;
+  delta: string;
+  meta?: { location?: string };
 }
 
 /** Completed charging dispatch */
@@ -11,7 +11,7 @@ export interface CompletedDispatch {
   start: string;
   end: string;
   delta: string;
-  meta?: Record<string, unknown>;
+  meta?: { location?: string };
 }
 
 /** Tariff rates for Intelligent Go */
@@ -25,11 +25,11 @@ export interface OctopusTariffRates {
 /** SmartFlex device info */
 export interface OctopusDevice {
   id: string;
-  make: string;
-  model: string;
   provider: "SMARTCAR" | "ENODE";
-  status: string;
-  chargingPreferences: {
+  make?: string;
+  model?: string;
+  status?: { current: string };
+  chargingPreferences?: {
     weekdayTargetTime: string;
     weekdayTargetSoc: number;
     weekendTargetTime: string;
@@ -58,4 +58,5 @@ export type OctopusAction =
   | { type: "SET_TARIFF"; tariff: OctopusTariffRates }
   | { type: "SET_DEVICE"; device: OctopusDevice }
   | { type: "SET_ERROR"; error: string }
-  | { type: "SET_LOADING"; isLoading: boolean };
+  | { type: "SET_LOADING"; isLoading: boolean }
+  | { type: "REFRESH" };

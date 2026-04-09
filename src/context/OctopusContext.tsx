@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useReducer,
@@ -28,7 +29,7 @@ const DEVICE_POLL_MS = 1_800_000; // 30 minutes
 // Default state
 // ---------------------------------------------------------------------------
 
-const defaultState: OctopusState = {
+const defaultState: OctopusState & { _refreshKey: number } = {
   plannedDispatches: [],
   completedDispatches: [],
   tariff: null,
@@ -36,13 +37,17 @@ const defaultState: OctopusState = {
   isLoading: true,
   error: null,
   lastFetched: null,
+  _refreshKey: 0,
 };
 
 // ---------------------------------------------------------------------------
 // Reducer
 // ---------------------------------------------------------------------------
 
-function reducer(state: OctopusState, action: OctopusAction): OctopusState {
+function reducer(
+  state: typeof defaultState,
+  action: OctopusAction,
+): typeof defaultState {
   switch (action.type) {
     case "SET_DISPATCHES":
       return {
@@ -53,13 +58,25 @@ function reducer(state: OctopusState, action: OctopusAction): OctopusState {
         lastFetched: new Date().toISOString(),
       };
     case "SET_TARIFF":
-      return { ...state, tariff: action.tariff, error: null };
+      return {
+        ...state,
+        tariff: action.tariff,
+        error: null,
+        lastFetched: new Date().toISOString(),
+      };
     case "SET_DEVICE":
-      return { ...state, device: action.device, error: null };
+      return {
+        ...state,
+        device: action.device,
+        error: null,
+        lastFetched: new Date().toISOString(),
+      };
     case "SET_ERROR":
       return { ...state, error: action.error };
     case "SET_LOADING":
       return { ...state, isLoading: action.isLoading };
+    case "REFRESH":
+      return { ...state, isLoading: true, _refreshKey: state._refreshKey + 1 };
     default:
       return state;
   }
@@ -69,7 +86,11 @@ function reducer(state: OctopusState, action: OctopusAction): OctopusState {
 // Context
 // ---------------------------------------------------------------------------
 
-const OctopusContext = createContext<OctopusState | null>(null);
+interface OctopusContextValue extends OctopusState {
+  refresh: () => void;
+}
+
+const OctopusContext = createContext<OctopusContextValue | null>(null);
 
 // ---------------------------------------------------------------------------
 // Provider
@@ -77,6 +98,10 @@ const OctopusContext = createContext<OctopusState | null>(null);
 
 export function OctopusProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(reducer, defaultState);
+  const { _refreshKey } = state;
+  const bustCache = _refreshKey > 0;
+
+  const refresh = useCallback(() => dispatch({ type: "REFRESH" }), []);
 
   // Fetch dispatches
   useEffect(() => {
@@ -84,7 +109,10 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
 
     async function fetchDispatches() {
       try {
-        const res = await fetch("/api/octopus/dispatches");
+        const res = await fetch(
+          "/api/octopus/dispatches",
+          bustCache ? { cache: "no-store" } : undefined,
+        );
         if (!res.ok) throw new Error("Failed to fetch dispatches");
         const data = (await res.json()) as {
           planned: OctopusDispatch[];
@@ -113,7 +141,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
       active = false;
       clearInterval(id);
     };
-  }, []);
+  }, [_refreshKey, bustCache]);
 
   // Fetch tariff
   useEffect(() => {
@@ -121,7 +149,10 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
 
     async function fetchTariff() {
       try {
-        const res = await fetch("/api/octopus/tariff");
+        const res = await fetch(
+          "/api/octopus/tariff",
+          bustCache ? { cache: "no-store" } : undefined,
+        );
         if (!res.ok) throw new Error("Failed to fetch tariff");
         const data = (await res.json()) as OctopusTariffRates;
         if (active) dispatch({ type: "SET_TARIFF", tariff: data });
@@ -141,7 +172,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
       active = false;
       clearInterval(id);
     };
-  }, []);
+  }, [_refreshKey, bustCache]);
 
   // Fetch device
   useEffect(() => {
@@ -149,7 +180,10 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
 
     async function fetchDevice() {
       try {
-        const res = await fetch("/api/octopus/device");
+        const res = await fetch(
+          "/api/octopus/device",
+          bustCache ? { cache: "no-store" } : undefined,
+        );
         if (!res.ok) throw new Error("Failed to fetch device");
         const data = (await res.json()) as { device: OctopusDevice };
         if (active) dispatch({ type: "SET_DEVICE", device: data.device });
@@ -169,7 +203,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
       active = false;
       clearInterval(id);
     };
-  }, []);
+  }, [_refreshKey, bustCache]);
 
   // Clear loading once first fetch cycle completes
   useEffect(() => {
@@ -179,7 +213,9 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
   }, [state.lastFetched, state.error]);
 
   return (
-    <OctopusContext.Provider value={state}>{children}</OctopusContext.Provider>
+    <OctopusContext.Provider value={{ ...state, refresh }}>
+      {children}
+    </OctopusContext.Provider>
   );
 }
 
@@ -187,7 +223,7 @@ export function OctopusProvider({ children }: { children: ReactNode }) {
 // Hook
 // ---------------------------------------------------------------------------
 
-export function useOctopus(): OctopusState {
+export function useOctopus(): OctopusContextValue {
   const ctx = useContext(OctopusContext);
   if (!ctx)
     throw new Error("useOctopus must be used within an OctopusProvider");

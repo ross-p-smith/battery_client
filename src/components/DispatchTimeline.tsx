@@ -33,21 +33,13 @@ function formatTime(iso: string): string {
 }
 
 function DispatchCard({ d }: { d: OctopusDispatch }) {
-  const color =
-    d.type === "BOOST"
-      ? "border-amber-500/50 bg-amber-500/10"
-      : "border-emerald-500/50 bg-emerald-500/10";
-
-  const badge =
-    d.type === "BOOST"
-      ? "bg-amber-500/20 text-amber-400"
-      : "bg-emerald-500/20 text-emerald-400";
+  const kwh = Math.abs(parseFloat(d.delta) || 0);
 
   return (
-    <div className={`rounded-lg border p-3 ${color}`}>
+    <div className="rounded-lg border border-emerald-500/50 bg-emerald-500/10 p-3">
       <div className="flex items-center justify-between">
-        <span className={`rounded px-2 py-0.5 text-xs font-medium ${badge}`}>
-          {d.type}
+        <span className="rounded bg-emerald-500/20 px-2 py-0.5 text-xs font-medium text-emerald-400">
+          SMART
         </span>
         <span className="text-xs text-zinc-500">{relativeTime(d.start)}</span>
       </div>
@@ -59,9 +51,9 @@ function DispatchCard({ d }: { d: OctopusDispatch }) {
           ({durationMins(d.start, d.end)} min)
         </span>
       </div>
-      {d.energyAddedKwh > 0 && (
+      {kwh > 0 && (
         <div className="mt-1 text-xs tabular-nums text-zinc-400">
-          +{d.energyAddedKwh.toFixed(1)} kWh
+          {d.delta} kWh
         </div>
       )}
     </div>
@@ -79,9 +71,7 @@ function CompletedCard({ d }: { d: CompletedDispatch }) {
           ({durationMins(d.start, d.end)} min)
         </span>
       </div>
-      <div className="mt-1 text-xs tabular-nums text-zinc-500">
-        Δ {d.delta}
-      </div>
+      <div className="mt-1 text-xs tabular-nums text-zinc-500">Δ {d.delta}</div>
     </div>
   );
 }
