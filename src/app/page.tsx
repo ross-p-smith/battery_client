@@ -7,6 +7,7 @@ import EnergyStats from "@/components/EnergyStats";
 import BatteryControls from "@/components/BatteryControls";
 import ScheduleManager from "@/components/ScheduleManager";
 import NotificationArea from "@/components/NotificationArea";
+import OctopusIntelligent from "@/components/OctopusIntelligent";
 import { config } from "@/lib/config";
 
 export default function Home() {
@@ -57,6 +58,7 @@ export default function Home() {
           {/* Center column — Energy Stats */}
           <div className="space-y-6">
             <EnergyStats />
+            <OctopusIntelligent />
           </div>
 
           {/* Right column — Controls & Schedule */}
