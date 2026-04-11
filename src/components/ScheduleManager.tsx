@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useBattery } from "@/context/BatteryContext";
 
 interface SlotData {
@@ -41,6 +41,22 @@ function SlotEditor({
   const [finish, setFinish] = useState(currentFinish);
   const [targetSoc, setTargetSoc] = useState(currentTargetSoc);
   const [savedValues, setSavedValues] = useState<SlotData | null>(null);
+  const [prevProps, setPrevProps] = useState({
+    currentStart,
+    currentFinish,
+    currentTargetSoc,
+  });
+  if (
+    currentStart !== prevProps.currentStart ||
+    currentFinish !== prevProps.currentFinish ||
+    currentTargetSoc !== prevProps.currentTargetSoc
+  ) {
+    setPrevProps({ currentStart, currentFinish, currentTargetSoc });
+    setStart(currentStart);
+    setFinish(currentFinish);
+    setTargetSoc(currentTargetSoc);
+    setSavedValues(null);
+  }
 
   const baselineStart = savedValues ? savedValues.start : currentStart;
   const baselineFinish = savedValues ? savedValues.finish : currentFinish;
@@ -49,13 +65,6 @@ function SlotEditor({
     start !== baselineStart ||
     finish !== baselineFinish ||
     targetSoc !== baselineSoc;
-
-  useEffect(() => {
-    setStart(currentStart);
-    setFinish(currentFinish);
-    setTargetSoc(currentTargetSoc);
-    setSavedValues(null);
-  }, [currentStart, currentFinish, currentTargetSoc]);
 
   const label = type === "charge" ? "Charge" : "Discharge";
   const color = type === "charge" ? "emerald" : "amber";

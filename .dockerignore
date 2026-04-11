@@ -1,0 +1,11 @@
+node_modules
+.next
+.git
+.github
+.devcontainer
+.copilot-tracking
+givtcp-config
+*.md
+!README.md
+.env*
+.vscode
