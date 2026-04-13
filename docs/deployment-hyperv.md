@@ -201,7 +201,7 @@ NEXT_PUBLIC_MQTT_URL=ws://192.168.1.150:9001
 
 # Octopus Energy API (optional)
 OCTOPUS_API_KEY=sk_live_xxxxx
-OCTOPUS_ACCOUNT_NUMBER=A-1234ABCD
+OCTOPUS_ACCOUNT=A-1234ABCD
 ```
 
 > **Important: MQTT URL Configuration**

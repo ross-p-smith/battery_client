@@ -13,7 +13,7 @@ services:
         condition: service_healthy
     environment:
       - OCTOPUS_API_KEY=${OCTOPUS_API_KEY}
-      - OCTOPUS_ACCOUNT_NUMBER=${OCTOPUS_ACCOUNT_NUMBER}
+      - OCTOPUS_ACCOUNT=${OCTOPUS_ACCOUNT}
     healthcheck:
       test:
         [
@@ -44,7 +44,7 @@ services:
       retries: 3
 
   givtcp:
-    image: britkat/giv_tcp-dev:latest
+    image: britkat/giv_tcp-dev:3.5.7
     restart: unless-stopped
     environment:
       - TZ=Europe/London
