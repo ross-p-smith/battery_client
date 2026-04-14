@@ -90,10 +90,10 @@ nano .env
 ```
 
 ```ini
-INVERTER_SERIAL=your_inverter_serial_here
+NEXT_PUBLIC_INVERTER_SERIAL=YOUR_SERIAL_HERE
 NEXT_PUBLIC_MQTT_URL=ws://battery-pi.local:9001
-OCTOPUS_API_KEY=your_octopus_api_key_here
-OCTOPUS_ACCOUNT=your_account_number_here
+OCTOPUS_API_KEY=sk_live_xxxxxxxxxxxx
+OCTOPUS_ACCOUNT=A-XXXXXXXX
 ```
 
 Start all services:
