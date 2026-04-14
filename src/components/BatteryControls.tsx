@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useBattery } from "@/context/BatteryContext";
 
 function parseTimeSlot(timeStr: string): string {
@@ -122,13 +122,19 @@ export default function BatteryControls() {
   );
   const [pauseStart, setPauseStart] = useState(currentPauseStart);
   const [pauseEnd, setPauseEnd] = useState(currentPauseEnd);
-  const pauseWindowChanged =
-    pauseStart !== currentPauseStart || pauseEnd !== currentPauseEnd;
-
-  useEffect(() => {
+  const [prevPauseStart, setPrevPauseStart] = useState(currentPauseStart);
+  const [prevPauseEnd, setPrevPauseEnd] = useState(currentPauseEnd);
+  if (
+    currentPauseStart !== prevPauseStart ||
+    currentPauseEnd !== prevPauseEnd
+  ) {
+    setPrevPauseStart(currentPauseStart);
+    setPrevPauseEnd(currentPauseEnd);
     setPauseStart(currentPauseStart);
     setPauseEnd(currentPauseEnd);
-  }, [currentPauseStart, currentPauseEnd]);
+  }
+  const pauseWindowChanged =
+    pauseStart !== currentPauseStart || pauseEnd !== currentPauseEnd;
 
   const maxBatRate = inverter.Invertor_Max_Bat_Rate || 2600;
 

@@ -1,0 +1,57 @@
+services:
+  app:
+    build:
+      context: .
+      args:
+        NEXT_PUBLIC_MQTT_URL: "${NEXT_PUBLIC_MQTT_URL:-ws://mosquitto:9001}"
+        NEXT_PUBLIC_INVERTER_SERIAL: "${NEXT_PUBLIC_INVERTER_SERIAL}"
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    environment:
+      - OCTOPUS_API_KEY=${OCTOPUS_API_KEY}
+      - OCTOPUS_ACCOUNT=${OCTOPUS_ACCOUNT}
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "wget",
+          "--no-verbose",
+          "--tries=1",
+          "--spider",
+          "http://localhost:3000",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/#' -C 1 -W 3 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  givtcp:
+    image: britkat/giv_tcp-dev:3.5.7
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/London
+    ports:
+      - "8099:8099"
+    volumes:
+      - ./givtcp-config:/config/GivTCP
+    depends_on:
+      mosquitto:
+        condition: service_healthy

@@ -1,7 +1,7 @@
 node_modules/
 .next/
 out/
-.env.local
+.env
 *.tsbuildinfo
 
 # Keep a safe scaffold for GivTCP config, but ignore real runtime data/secrets.

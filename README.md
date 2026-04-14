@@ -25,10 +25,10 @@ A real-time GivEnergy All-in-One V2 battery monitoring and control dashboard bui
 2. Copy the app environment template and configure it:
 
    ```bash
-   cp .env.local.example .env.local
+   cp .env.example .env
    ```
 
-   Edit `.env.local`:
+   Edit `.env`:
 
    ```env
    NEXT_PUBLIC_INVERTER_SERIAL=YOUR_SERIAL_HERE

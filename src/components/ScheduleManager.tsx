@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useBattery } from "@/context/BatteryContext";
 
 interface SlotData {
@@ -25,27 +25,46 @@ function SlotEditor({
   type,
   startTime,
   endTime,
+  currentTargetSoc,
   onSave,
 }: {
   slotNumber: number;
   type: "charge" | "discharge";
   startTime: string;
   endTime: string;
+  currentTargetSoc: string;
   onSave: (slot: SlotData) => void;
 }) {
   const currentStart = useMemo(() => parseTimeSlot(startTime), [startTime]);
   const currentFinish = useMemo(() => parseTimeSlot(endTime), [endTime]);
   const [start, setStart] = useState(currentStart);
   const [finish, setFinish] = useState(currentFinish);
-  const [targetSoc, setTargetSoc] = useState("100");
-  const modified =
-    start !== currentStart || finish !== currentFinish || targetSoc !== "100";
-
-  useEffect(() => {
+  const [targetSoc, setTargetSoc] = useState(currentTargetSoc);
+  const [savedValues, setSavedValues] = useState<SlotData | null>(null);
+  const [prevProps, setPrevProps] = useState({
+    currentStart,
+    currentFinish,
+    currentTargetSoc,
+  });
+  if (
+    currentStart !== prevProps.currentStart ||
+    currentFinish !== prevProps.currentFinish ||
+    currentTargetSoc !== prevProps.currentTargetSoc
+  ) {
+    setPrevProps({ currentStart, currentFinish, currentTargetSoc });
     setStart(currentStart);
     setFinish(currentFinish);
-    setTargetSoc("100");
-  }, [currentStart, currentFinish]);
+    setTargetSoc(currentTargetSoc);
+    setSavedValues(null);
+  }
+
+  const baselineStart = savedValues ? savedValues.start : currentStart;
+  const baselineFinish = savedValues ? savedValues.finish : currentFinish;
+  const baselineSoc = savedValues ? savedValues.targetSoc : currentTargetSoc;
+  const modified =
+    start !== baselineStart ||
+    finish !== baselineFinish ||
+    targetSoc !== baselineSoc;
 
   const label = type === "charge" ? "Charge" : "Discharge";
   const color = type === "charge" ? "emerald" : "amber";
@@ -98,6 +117,7 @@ function SlotEditor({
               finish: formatTimeForCommand(finish),
               targetSoc,
             });
+            setSavedValues({ start, finish, targetSoc });
           }}
           disabled={!modified}
           className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
@@ -110,7 +130,7 @@ function SlotEditor({
         </button>
       </div>
       <div className="mt-1 text-xs text-zinc-600">
-        Current: {currentStart} — {currentFinish}
+        Current: {currentStart} — {currentFinish} · {currentTargetSoc}%
       </div>
     </div>
   );
@@ -178,6 +198,7 @@ export default function ScheduleManager() {
               type="charge"
               startTime={timeslots.Charge_start_time_slot_1 ?? ""}
               endTime={timeslots.Charge_end_time_slot_1 ?? ""}
+              currentTargetSoc={timeslots.Charge_Target_SOC_1 ?? "100"}
               onSave={(data) => handleSaveChargeSlot(1, data)}
             />
             <SlotEditor
@@ -185,6 +206,7 @@ export default function ScheduleManager() {
               type="charge"
               startTime={timeslots.Charge_start_time_slot_2 ?? ""}
               endTime={timeslots.Charge_end_time_slot_2 ?? ""}
+              currentTargetSoc={timeslots.Charge_Target_SOC_2 ?? "100"}
               onSave={(data) => handleSaveChargeSlot(2, data)}
             />
             <SlotEditor
@@ -192,6 +214,7 @@ export default function ScheduleManager() {
               type="charge"
               startTime={timeslots.Charge_start_time_slot_3 ?? ""}
               endTime={timeslots.Charge_end_time_slot_3 ?? ""}
+              currentTargetSoc={timeslots.Charge_Target_SOC_3 ?? "100"}
               onSave={(data) => handleSaveChargeSlot(3, data)}
             />
           </div>
@@ -233,6 +256,7 @@ export default function ScheduleManager() {
               type="discharge"
               startTime={timeslots.Discharge_start_time_slot_1 ?? ""}
               endTime={timeslots.Discharge_end_time_slot_1 ?? ""}
+              currentTargetSoc={timeslots.Discharge_Target_SOC_1 ?? "100"}
               onSave={(data) => handleSaveDischargeSlot(1, data)}
             />
             <SlotEditor
@@ -240,6 +264,7 @@ export default function ScheduleManager() {
               type="discharge"
               startTime={timeslots.Discharge_start_time_slot_2 ?? ""}
               endTime={timeslots.Discharge_end_time_slot_2 ?? ""}
+              currentTargetSoc={timeslots.Discharge_Target_SOC_2 ?? "100"}
               onSave={(data) => handleSaveDischargeSlot(2, data)}
             />
             <SlotEditor
@@ -247,6 +272,7 @@ export default function ScheduleManager() {
               type="discharge"
               startTime={timeslots.Discharge_start_time_slot_3 ?? ""}
               endTime={timeslots.Discharge_end_time_slot_3 ?? ""}
+              currentTargetSoc={timeslots.Discharge_Target_SOC_3 ?? "100"}
               onSave={(data) => handleSaveDischargeSlot(3, data)}
             />
           </div>
