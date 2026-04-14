@@ -3,8 +3,8 @@ services:
     build:
       context: .
       args:
-        NEXT_PUBLIC_MQTT_URL: "ws://mosquitto:9001"
-        NEXT_PUBLIC_INVERTER_SERIAL: "${INVERTER_SERIAL}"
+        NEXT_PUBLIC_MQTT_URL: "${NEXT_PUBLIC_MQTT_URL:-ws://mosquitto:9001}"
+        NEXT_PUBLIC_INVERTER_SERIAL: "${NEXT_PUBLIC_INVERTER_SERIAL}"
     ports:
       - "3000:3000"
     restart: unless-stopped
@@ -32,7 +32,7 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2
     volumes:
-      - ./.devcontainer/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
     ports:
       - "1883:1883"
       - "9001:9001"
