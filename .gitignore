@@ -8,3 +8,4 @@ out/
 givtcp-config/*
 !givtcp-config/.gitkeep
 !givtcp-config/allsettings.template.json
+.env
