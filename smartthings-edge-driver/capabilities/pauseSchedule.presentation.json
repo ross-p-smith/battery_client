@@ -1,0 +1,79 @@
+{
+  "dashboard": {
+    "states": [
+      {
+        "label": "Pause: {{pauseMode.value}}"
+      }
+    ]
+  },
+  "detailView": [
+    {
+      "displayType": "list",
+      "list": {
+        "command": {
+          "name": "setPauseMode",
+          "alternatives": [
+            {
+              "key": "Disabled",
+              "value": "Disabled",
+              "type": "active"
+            },
+            {
+              "key": "PauseCharge",
+              "value": "Pause Charge",
+              "type": "active"
+            },
+            {
+              "key": "PauseDischarge",
+              "value": "Pause Discharge",
+              "type": "active"
+            },
+            {
+              "key": "PauseBoth",
+              "value": "Pause Both",
+              "type": "active"
+            }
+          ]
+        },
+        "state": {
+          "value": "pauseMode.value",
+          "alternatives": [
+            {
+              "key": "Disabled",
+              "value": "Disabled"
+            },
+            {
+              "key": "PauseCharge",
+              "value": "Pause Charge"
+            },
+            {
+              "key": "PauseDischarge",
+              "value": "Pause Discharge"
+            },
+            {
+              "key": "PauseBoth",
+              "value": "Pause Both"
+            }
+          ]
+        }
+      },
+      "label": "Pause Mode"
+    },
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Start",
+        "value": "pauseStart.value"
+      },
+      "label": "Pause Start"
+    },
+    {
+      "displayType": "state",
+      "state": {
+        "label": "End",
+        "value": "pauseEnd.value"
+      },
+      "label": "Pause End"
+    }
+  ]
+}

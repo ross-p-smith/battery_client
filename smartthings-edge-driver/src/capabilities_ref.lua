@@ -24,5 +24,6 @@ caps.chargeSchedule = capabilities["instantheart30774.chargeSchedule"]
 caps.dischargeSchedule = capabilities["instantheart30774.dischargeSchedule"]
 caps.inverterInfo = capabilities["instantheart30774.inverterInfo"]
 caps.energyStats = capabilities["instantheart30774.energyStats"]
+caps.pauseSchedule = capabilities["instantheart30774.pauseSchedule"]
 
 return caps

@@ -32,10 +32,6 @@ local routing_table = {
   ["Power/Power/Battery_Power"]   = { comp = "main", cap = "powerMeter", attr = "power", xform = "number", unit = "W" },
   ["Power/Power/Battery_Voltage"] = { comp = "main", cap = "voltageMeasurement", attr = "voltage", xform = "number", unit = "V" },
 
-  -- solar component
-  ["Power/Power/PV_Power"]                    = { comp = "solar", cap = "powerMeter", attr = "power", xform = "number", unit = "W" },
-  ["Energy/Today/PV_Energy_Today_kWh"]        = { comp = "solar", cap = "energyMeter", attr = "energy", xform = "number", unit = "kWh" },
-
   -- grid component
   ["Power/Power/Grid_Power"]                  = { comp = "grid", cap = "powerMeter", attr = "power", xform = "number", unit = "W" },
   ["Power/Power/Grid_Voltage"]                = { comp = "grid", cap = "voltageMeasurement", attr = "voltage", xform = "number", unit = "V" },
@@ -57,6 +53,11 @@ local routing_table = {
   -- schedule component
   ["Control/Enable_Charge_Schedule"]    = { comp = "schedule", cap = "chargeSchedule", attr = "enabled", xform = "enable_disable" },
   ["Control/Enable_Discharge_Schedule"] = { comp = "schedule", cap = "dischargeSchedule", attr = "enabled", xform = "enable_disable" },
+
+  -- pause schedule
+  ["Control/Battery_pause_mode"]          = { comp = "schedule", cap = "pauseSchedule", attr = "pauseMode", xform = "string" },
+  ["Control/Battery_pause_start_time_slot"] = { comp = "schedule", cap = "pauseSchedule", attr = "pauseStart", xform = "string" },
+  ["Control/Battery_pause_end_time_slot"]   = { comp = "schedule", cap = "pauseSchedule", attr = "pauseEnd", xform = "string" },
 
   -- inverter component
   ["{serial}/Invertor_Temperature"]                      = { comp = "inverter", cap = "temperatureMeasurement", attr = "temperature", xform = "number", unit = "C" },

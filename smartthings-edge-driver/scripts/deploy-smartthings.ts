@@ -32,6 +32,7 @@ const CAPS = [
   "dischargeSchedule",
   "inverterInfo",
   "energyStats",
+  "pauseSchedule",
 ];
 
 // ── helpers ─────────────────────────────────────────────────────────
@@ -76,9 +77,10 @@ function saveState(key: string, value: string) {
 // ── step 1: register capabilities ──────────────────────────────────
 async function registerCapabilities(
   client: SmartThingsClient,
+  existingNamespace?: string,
 ): Promise<string> {
   info("Registering custom capabilities...");
-  let namespace = "";
+  let namespace = existingNamespace || "";
 
   for (const cap of CAPS) {
     const schemaPath = path.join(CAPABILITIES_DIR, `${cap}.json`);
@@ -203,6 +205,26 @@ async function registerPresentations(
         msg.includes("Conflict")
       ) {
         console.log(`  ⊘ ${capId} (already exists)`);
+      } else if (msg.includes("403")) {
+        // SDK presentation endpoint may 403 — fall back to direct REST
+        const token = requireEnv("SMARTTHINGS_TOKEN");
+        const res = await fetch(
+          `https://api.smartthings.com/v1/capabilities/${capId}/1/presentation`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(presData),
+          },
+        );
+        if (res.ok) {
+          console.log(`  ✓ ${capId} (via REST fallback)`);
+        } else {
+          const body = await res.text();
+          die(`Presentation ${capId}: ${res.status} ${body}`);
+        }
       } else {
         throw e;
       }
@@ -310,9 +332,8 @@ async function deploy(client: SmartThingsClient) {
   if (!namespace) {
     namespace = await registerCapabilities(client);
   } else {
-    info(
-      `Capabilities already registered (namespace: ${namespace}). Skipping.`,
-    );
+    // Register any new capabilities that were added since initial deploy
+    await registerCapabilities(client, namespace);
   }
 
   replacePlaceholders(namespace);

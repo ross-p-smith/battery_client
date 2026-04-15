@@ -93,8 +93,7 @@ local function device_added(driver, device)
   device:emit_event(capabilities.battery.battery(0))
   device:emit_component_event(device.profile.components.main,
     capabilities.powerMeter.power({value = 0, unit = "W"}))
-  device:emit_component_event(device.profile.components.solar,
-    capabilities.powerMeter.power({value = 0, unit = "W"}))
+
   device:emit_component_event(device.profile.components.grid,
     capabilities.powerMeter.power({value = 0, unit = "W"}))
   device:emit_component_event(device.profile.components.house,

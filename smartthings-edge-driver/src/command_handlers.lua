@@ -28,6 +28,11 @@ local command_map = {
   { cap = caps.chargeSchedule,    cmd = "disable", topic = "enableChargeSchedule",    payload = "disable" },
   { cap = caps.dischargeSchedule, cmd = "enable",  topic = "enableDischargeSchedule", payload = "enable" },
   { cap = caps.dischargeSchedule, cmd = "disable", topic = "enableDischargeSchedule", payload = "disable" },
+
+  -- pause schedule
+  { cap = caps.pauseSchedule, cmd = "setPauseMode",  topic = "setBatteryPauseMode", xform = function(args) return args.mode end },
+  { cap = caps.pauseSchedule, cmd = "setPauseStart", topic = "setPauseStart",        xform = function(args) return args.time end },
+  { cap = caps.pauseSchedule, cmd = "setPauseEnd",   topic = "setPauseEnd",          xform = function(args) return args.time end },
 }
 
 -- Build capability_handlers table for the Driver constructor

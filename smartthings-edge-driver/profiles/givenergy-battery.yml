@@ -19,15 +19,6 @@ components:
         version: 1
     categories:
       - name: Battery
-  - id: solar
-    label: "Solar"
-    capabilities:
-      - id: powerMeter
-        version: 1
-      - id: energyMeter
-        version: 1
-    categories:
-      - name: SolarPanel
   - id: grid
     label: "Grid"
     capabilities:
@@ -73,6 +64,8 @@ components:
       - id: instantheart30774.chargeSchedule
         version: 1
       - id: instantheart30774.dischargeSchedule
+        version: 1
+      - id: instantheart30774.pauseSchedule
         version: 1
     categories:
       - name: GenericSensor

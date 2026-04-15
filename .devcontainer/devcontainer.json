@@ -30,6 +30,6 @@
     }
   },
 
-  "postCreateCommand": "npm install",
+  "postCreateCommand": "npm install && bash smartthings-edge-driver/scripts/setup-dev-tools.sh",
   "postStartCommand": "npm run dev"
 }

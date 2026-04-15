@@ -29,13 +29,22 @@ deploy-logs:
 deploy-down:
 	ssh $(REMOTE_SSH) "cd $(REMOTE_DIR) && docker compose down"
 
-.PHONY: smartthings-deploy smartthings-update smartthings-logs lint
+.PHONY: smartthings-deploy smartthings-update smartthings-clean smartthings-logs lint
 
 smart-deploy:
 	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts deploy
 
 smart-update:
 	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts update
+
+smart-clean:
+	@echo "To remove orphaned capabilities from SmartThings cloud:"
+	@echo "  smartthings capabilities:list"
+	@echo "  smartthings capabilities:delete <capability-id>"
+	@echo ""
+	@echo "To uninstall the driver from the hub:"
+	@echo "  smartthings edge:drivers:installed --hub $(SMARTTHINGS_HUB_ID)"
+	@echo "  smartthings edge:drivers:uninstall <driver-id> --hub $(SMARTTHINGS_HUB_ID)"
 
 lint:
 	npm run lint

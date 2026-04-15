@@ -19,8 +19,4 @@ else
 fi
 
 echo ""
-echo "Setup complete. To configure LUA_PATH for development:"
-echo "  export LUA_PATH=\"$DRIVER_DIR/src/?.lua;$DRIVER_DIR/src/?/init.lua;$LUA_LIBS_DIR/?.lua;$LUA_LIBS_DIR/?/init.lua;;\""
-echo ""
-echo "To authenticate SmartThings CLI, use a Personal Access Token:"
-echo "  smartthings --token <your-PAT>"
+echo "Setup complete. lua_libs available for sumneko Lua extension."
