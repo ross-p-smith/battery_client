@@ -1,6 +1,8 @@
 {
   "name": "GivEnergy Battery Client",
-  "image": "mcr.microsoft.com/devcontainers/typescript-node:24",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
 
   "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
   "workspaceFolder": "/workspace",
@@ -12,15 +14,22 @@
       "extensions": [
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
-        "bradlc.vscode-tailwindcss"
+        "bradlc.vscode-tailwindcss",
+        "sumneko.lua"
       ],
       "settings": {
         "editor.defaultFormatter": "esbenp.prettier-vscode",
-        "editor.formatOnSave": true
+        "editor.formatOnSave": true,
+        "Lua.runtime.version": "Lua 5.3",
+        "Lua.workspace.library": [
+          "${workspaceFolder}/smartthings-edge-driver/lua_libs"
+        ],
+        "Lua.diagnostics.globals": ["test"],
+        "Lua.workspace.checkThirdParty": false
       }
     }
   },
 
-  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y mosquitto-clients && npm install",
+  "postCreateCommand": "npm install",
   "postStartCommand": "npm run dev"
 }

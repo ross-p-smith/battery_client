@@ -1,0 +1,12 @@
+{
+  "detailView": [
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Inverter Info",
+        "value": "info.value"
+      },
+      "label": "Inverter Info"
+    }
+  ]
+}

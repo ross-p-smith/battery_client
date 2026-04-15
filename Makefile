@@ -1,6 +1,7 @@
 .PHONY: mqtt-monitor
 
 include .env
+export
 
 REMOTE_SSH ?= $(REMOTE_USER)@$(REMOTE_HOST)
 REMOTE_DIR  ?= ~/battery-client
@@ -27,3 +28,15 @@ deploy-logs:
 
 deploy-down:
 	ssh $(REMOTE_SSH) "cd $(REMOTE_DIR) && docker compose down"
+
+.PHONY: smartthings-deploy smartthings-update smartthings-logs lint
+
+smart-deploy:
+	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts deploy
+
+smart-update:
+	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts update
+
+lint:
+	npm run lint
+	cd smartthings-edge-driver && luacheck src/
