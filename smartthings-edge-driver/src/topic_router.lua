@@ -30,11 +30,9 @@ local routing_table = {
   -- main (Battery) component
   ["Power/Power/SOC"]             = { comp = "main", cap = "battery", attr = "battery", xform = "integer" },
   ["Power/Power/Battery_Power"]   = { comp = "main", cap = "powerMeter", attr = "power", xform = "number", unit = "W" },
-  ["Power/Power/Battery_Voltage"] = { comp = "main", cap = "voltageMeasurement", attr = "voltage", xform = "number", unit = "V" },
 
   -- grid component
   ["Power/Power/Grid_Power"]                  = { comp = "grid", cap = "powerMeter", attr = "power", xform = "number", unit = "W" },
-  ["Power/Power/Grid_Voltage"]                = { comp = "grid", cap = "voltageMeasurement", attr = "voltage", xform = "number", unit = "V" },
   ["Energy/Today/Import_Energy_Today_kWh"]    = { comp = "grid", cap = "energyMeter", attr = "energy", xform = "number", unit = "kWh" },
 
   -- house component
@@ -50,17 +48,12 @@ local routing_table = {
   ["Control/Force_Charge"]           = { comp = "control", cap = "forceCharge", attr = "switch", xform = "enable_disable" },
   ["Control/Force_Export"]           = { comp = "control", cap = "forceExport", attr = "switch", xform = "enable_disable" },
 
-  -- schedule component
-  ["Control/Enable_Charge_Schedule"]    = { comp = "schedule", cap = "chargeSchedule", attr = "enabled", xform = "enable_disable" },
-  ["Control/Enable_Discharge_Schedule"] = { comp = "schedule", cap = "dischargeSchedule", attr = "enabled", xform = "enable_disable" },
-
   -- pause schedule
   ["Control/Battery_pause_mode"]          = { comp = "schedule", cap = "pauseSchedule", attr = "pauseMode", xform = "string" },
   ["Control/Battery_pause_start_time_slot"] = { comp = "schedule", cap = "pauseSchedule", attr = "pauseStart", xform = "string" },
   ["Control/Battery_pause_end_time_slot"]   = { comp = "schedule", cap = "pauseSchedule", attr = "pauseEnd", xform = "string" },
 
   -- inverter component
-  ["{serial}/Invertor_Temperature"]                      = { comp = "inverter", cap = "temperatureMeasurement", attr = "temperature", xform = "number", unit = "C" },
   ["Energy/Today/Export_Energy_Today_kWh"]               = { comp = "inverter", cap = "energyStats", attr = "exportEnergy", xform = "number" },
   ["Energy/Today/Self_Consumption_Energy_Today_kWh"]     = { comp = "inverter", cap = "energyStats", attr = "selfConsumption", xform = "number" },
   ["Energy/Today/Battery_Throughput_Today_kWh"]          = { comp = "inverter", cap = "energyStats", attr = "batteryThroughput", xform = "number" },
@@ -73,12 +66,6 @@ function M.route_message(device, topic, payload)
   if not path then
     log.debug("Ignoring non-GivEnergy topic:", topic)
     return
-  end
-
-  -- Handle inverter temp topic (contains serial twice): GivEnergy/{serial}/{serial}/Invertor_Temperature
-  local serial = device.preferences.inverterSerial
-  if serial and serial ~= "" then
-    path = path:gsub("^" .. serial .. "/", "{serial}/")
   end
 
   local route = routing_table[path]

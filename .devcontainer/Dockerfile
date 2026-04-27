@@ -7,4 +7,5 @@ RUN apt-get update \
         liblua5.3-dev \
         luarocks \
     && rm -rf /var/lib/apt/lists/* \
-    && luarocks install luacheck
+    && luarocks install luacheck \
+    && npm install -g @smartthings/cli

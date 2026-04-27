@@ -3,6 +3,25 @@ local caps = require "capabilities_ref"
 
 local M = {}
 
+-- Validate HH:MM time format (00:00 - 23:59)
+local function validate_time(val)
+  if type(val) ~= "string" then
+    log.warn("Time value is not a string:", tostring(val))
+    return nil
+  end
+  local h, m = val:match("^(%d%d):(%d%d)$")
+  if not h then
+    log.warn("Invalid time format (expected HH:MM):", val)
+    return nil
+  end
+  h, m = tonumber(h), tonumber(m)
+  if h > 23 or m > 59 then
+    log.warn("Time out of range (expected 00:00-23:59):", val)
+    return nil
+  end
+  return val
+end
+
 -- Battery mode mapping (SmartThings mode name → GivTCP mode value)
 local mode_values = {
   ["Eco"]           = "1",
@@ -23,16 +42,10 @@ local command_map = {
   { cap = caps.targetSoc,      cmd = "setLevel",  topic = "setChargeTarget",   xform = function(args) return tostring(args.level) end },
   { cap = caps.batteryReserve, cmd = "setLevel",  topic = "setBatteryReserve", xform = function(args) return tostring(args.level) end },
 
-  -- schedule component
-  { cap = caps.chargeSchedule,    cmd = "enable",  topic = "enableChargeSchedule",    payload = "enable" },
-  { cap = caps.chargeSchedule,    cmd = "disable", topic = "enableChargeSchedule",    payload = "disable" },
-  { cap = caps.dischargeSchedule, cmd = "enable",  topic = "enableDischargeSchedule", payload = "enable" },
-  { cap = caps.dischargeSchedule, cmd = "disable", topic = "enableDischargeSchedule", payload = "disable" },
-
   -- pause schedule
   { cap = caps.pauseSchedule, cmd = "setPauseMode",  topic = "setBatteryPauseMode", xform = function(args) return args.mode end },
-  { cap = caps.pauseSchedule, cmd = "setPauseStart", topic = "setPauseStart",        xform = function(args) return args.time end },
-  { cap = caps.pauseSchedule, cmd = "setPauseEnd",   topic = "setPauseEnd",          xform = function(args) return args.time end },
+  { cap = caps.pauseSchedule, cmd = "setPauseStart", topic = "setPauseStart",        xform = function(args) return validate_time(args.time) end },
+  { cap = caps.pauseSchedule, cmd = "setPauseEnd",   topic = "setPauseEnd",          xform = function(args) return validate_time(args.time) end },
 }
 
 -- Build capability_handlers table for the Driver constructor
@@ -60,6 +73,10 @@ function M.build_handlers(get_client)
         payload = entry.payload
       elseif entry.xform then
         payload = entry.xform(command.args)
+        if payload == nil then
+          log.warn("Validation failed, not publishing to:", entry.topic)
+          return
+        end
       else
         log.warn("No payload or transform for command:", entry.topic)
         return

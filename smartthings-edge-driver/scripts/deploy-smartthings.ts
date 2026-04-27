@@ -15,11 +15,25 @@ import type {
 import archiver from "archiver";
 import * as fs from "node:fs";
 import * as path from "node:path";
+import * as readline from "node:readline";
+import { spawn } from "node:child_process";
 
 // ── paths ───────────────────────────────────────────────────────────
 const DRIVER_DIR = path.resolve(__dirname, "..");
 const CAPABILITIES_DIR = path.join(DRIVER_DIR, "capabilities");
 const STATE_FILE = path.join(DRIVER_DIR, ".smartthings-state");
+const REPO_ROOT = path.resolve(DRIVER_DIR, "..");
+const ENV_FILE = path.join(REPO_ROOT, ".env");
+const TOKEN_PAGE_URL = "https://account.smartthings.com/tokens";
+const REQUIRED_SCOPES = [
+  "r:devices:*",
+  "r:hubs:*",
+  "r:locations:*",
+  "w:devices:*",
+  "x:devices:*",
+  "r:scenes:*",
+  "x:scenes:*",
+];
 
 const CAPS = [
   "mqttStatus",
@@ -28,8 +42,6 @@ const CAPS = [
   "dischargeRate",
   "targetSoc",
   "batteryReserve",
-  "chargeSchedule",
-  "dischargeSchedule",
   "inverterInfo",
   "energyStats",
   "pauseSchedule",
@@ -47,8 +59,79 @@ function info(msg: string) {
 
 function requireEnv(name: string): string {
   const val = process.env[name];
-  if (!val) die(`Required variable ${name} is not set. Add it to .env`);
+  if (!val) {
+    if (name === "SMARTTHINGS_TOKEN") {
+      die(
+        `${name} is not set.\n` +
+          `Run 'make smart-login' to generate and store a Personal Access Token.`,
+      );
+    }
+    die(`Required variable ${name} is not set. Add it to .env`);
+  }
   return val;
+}
+
+function isAuthError(err: unknown): boolean {
+  const msg = (err as Error)?.message || "";
+  return /\b401\b|Unauthorized|Authorization Required/i.test(msg);
+}
+
+function prompt(question: string): Promise<string> {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  });
+  return new Promise((resolve) => {
+    rl.question(question, (answer) => {
+      rl.close();
+      resolve(answer.trim());
+    });
+  });
+}
+
+function tryOpenBrowser(url: string) {
+  const browser = process.env.BROWSER;
+  const cmd =
+    browser ||
+    (process.platform === "darwin"
+      ? "open"
+      : process.platform === "win32"
+        ? "start"
+        : "xdg-open");
+  try {
+    spawn(cmd, [url], {
+      stdio: "ignore",
+      detached: true,
+      shell: process.platform === "win32",
+    }).unref();
+  } catch {
+    // best-effort only
+  }
+}
+
+// ── .env persistence ────────────────────────────────────────────────
+function upsertEnvVar(name: string, value: string) {
+  let lines: string[] = [];
+  if (fs.existsSync(ENV_FILE)) {
+    lines = fs.readFileSync(ENV_FILE, "utf8").split(/\r?\n/);
+  }
+  const re = new RegExp(`^\\s*${name}\\s*=`);
+  let replaced = false;
+  lines = lines.map((line) => {
+    if (re.test(line)) {
+      replaced = true;
+      return `${name}=${value}`;
+    }
+    return line;
+  });
+  if (!replaced) {
+    if (lines.length > 0 && lines[lines.length - 1] !== "") lines.push("");
+    lines.push(`${name}=${value}`);
+  }
+  // Ensure trailing newline
+  let content = lines.join("\n");
+  if (!content.endsWith("\n")) content += "\n";
+  fs.writeFileSync(ENV_FILE, content, { mode: 0o600 });
 }
 
 // ── state management ────────────────────────────────────────────────
@@ -232,6 +315,28 @@ async function registerPresentations(
   }
 }
 
+// ── delete capability ──────────────────────────────────────────────
+async function deleteCapability(
+  client: SmartThingsClient,
+  namespace: string,
+  capName: string,
+): Promise<boolean> {
+  const capId = `${namespace}.${capName}`;
+  info(`  Deleting capability: ${capId}`);
+  try {
+    await client.capabilities.delete(capId, 1);
+    console.log(`  ✓ Deleted ${capId}`);
+    return true;
+  } catch (e: unknown) {
+    const msg = (e as Error).message || "";
+    if (msg.includes("404") || msg.includes("Not Found")) {
+      console.log(`  ⊘ ${capId} (not found)`);
+      return false;
+    }
+    throw e;
+  }
+}
+
 // ── step 4: create channel ─────────────────────────────────────────
 async function ensureChannel(
   client: SmartThingsClient,
@@ -362,6 +467,7 @@ async function update(client: SmartThingsClient) {
   const channelId = state.SMARTTHINGS_CHANNEL_ID;
   if (!channelId) die("No channel ID found. Run 'deploy' first.");
 
+  const hubId = requireEnv("SMARTTHINGS_HUB_ID");
   const { driverId, version } = await packageAndUpload(client);
   try {
     await client.channels.assignDriver(channelId, driverId, version);
@@ -369,17 +475,85 @@ async function update(client: SmartThingsClient) {
     // May already be assigned
   }
 
+  info("Installing updated driver on hub...");
+  try {
+    await client.hubdevices.installDriver(driverId, hubId, channelId);
+    console.log("  ✓ Installed on hub");
+  } catch (e: unknown) {
+    console.log(`  ⚠ Install: ${(e as Error).message}`);
+  }
+
   console.log("");
-  info("Driver updated. Hub will auto-update within ~60 seconds.");
+  info("Driver updated and pushed to hub.");
 }
 
 // ── main ────────────────────────────────────────────────────────────
+async function login() {
+  info("SmartThings Personal Access Token login");
+  console.log("");
+  console.log(
+    `Open this URL in a browser and create a new Personal Access Token:`,
+  );
+  console.log(`  ${TOKEN_PAGE_URL}`);
+  console.log("");
+  console.log(`Required scopes (tick all of these when generating):`);
+  for (const s of REQUIRED_SCOPES) console.log(`  - ${s}`);
+  console.log("");
+  console.log(
+    `Note: SmartThings PATs expire 24 hours after creation, so you may need to repeat this periodically.`,
+  );
+  console.log("");
+
+  tryOpenBrowser(TOKEN_PAGE_URL);
+
+  const token = await prompt("Paste your Personal Access Token: ");
+  if (!token) die("No token entered.");
+  if (!/^[A-Za-z0-9-]{20,}$/.test(token)) {
+    die("That doesn't look like a valid PAT (expected a long token string).");
+  }
+
+  // Validate against the API
+  info("Validating token...");
+  const res = await fetch("https://api.smartthings.com/v1/locations", {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (res.status === 401) {
+    die(
+      "SmartThings rejected the token (401). Double-check you copied it correctly and that it hasn't expired.",
+    );
+  }
+  if (!res.ok) {
+    const body = await res.text();
+    die(`Token validation failed: ${res.status} ${body}`);
+  }
+  const locations = (await res.json()) as { items?: Array<{ name: string }> };
+  console.log(
+    `  ✓ Token accepted (${locations.items?.length ?? 0} location(s) visible).`,
+  );
+
+  upsertEnvVar("SMARTTHINGS_TOKEN", token);
+  info(`Saved SMARTTHINGS_TOKEN to ${ENV_FILE}`);
+
+  if (!process.env.SMARTTHINGS_HUB_ID) {
+    info(
+      "Tip: SMARTTHINGS_HUB_ID is not set. Discover it with:\n" +
+        "  curl -s -H 'Authorization: Bearer $SMARTTHINGS_TOKEN' https://api.smartthings.com/v1/hubs | jq '.items[] | {name, hubId: .id}'",
+    );
+  }
+}
+
 async function main() {
+  const command = process.argv[2] || "deploy";
+
+  if (command === "login") {
+    await login();
+    return;
+  }
+
   const token = requireEnv("SMARTTHINGS_TOKEN");
   requireEnv("SMARTTHINGS_HUB_ID");
 
   const client = new SmartThingsClient(new BearerTokenAuthenticator(token));
-  const command = process.argv[2] || "deploy";
 
   switch (command) {
     case "deploy":
@@ -388,13 +562,165 @@ async function main() {
     case "update":
       await update(client);
       break;
+    case "redeploy": {
+      const capsToRedeploy = process.argv.slice(3);
+      if (capsToRedeploy.length === 0) {
+        die(
+          "Usage: deploy-smartthings.ts redeploy <cap1> [cap2] ...\nExample: deploy-smartthings.ts redeploy pauseSchedule",
+        );
+      }
+      const state = loadState();
+      const namespace = state.SMARTTHINGS_NAMESPACE;
+      if (!namespace) die("No namespace found. Run 'deploy' first.");
+
+      info(`Redeploying capabilities: ${capsToRedeploy.join(", ")}`);
+
+      // Validate all caps exist in CAPS list
+      for (const cap of capsToRedeploy) {
+        if (!CAPS.includes(cap)) {
+          die(`Unknown capability: ${cap}. Must be one of: ${CAPS.join(", ")}`);
+        }
+      }
+
+      // Delete specified capabilities
+      for (const cap of capsToRedeploy) {
+        await deleteCapability(client, namespace, cap);
+      }
+
+      // Re-register capabilities (only the specified ones)
+      const filteredCaps = CAPS.filter((c) => capsToRedeploy.includes(c));
+      for (const cap of filteredCaps) {
+        const schemaPath = path.join(CAPABILITIES_DIR, `${cap}.json`);
+        const raw = JSON.parse(fs.readFileSync(schemaPath, "utf8"));
+        const { id: _id, version: _ver, ...capData } = raw;
+        const capability: CapabilityCreate = capData;
+        info(`  Re-creating capability: ${cap}`);
+        try {
+          const result = await client.capabilities.create(capability);
+          console.log(`  ✓ ${result.id}`);
+        } catch (e: unknown) {
+          throw e;
+        }
+      }
+
+      // Re-register presentations
+      for (const cap of filteredCaps) {
+        const presPath = path.join(
+          CAPABILITIES_DIR,
+          `${cap}.presentation.json`,
+        );
+        const presData = JSON.parse(fs.readFileSync(presPath, "utf8"));
+        const capId = `${namespace}.${cap}`;
+        const presentation: CapabilityPresentationCreate = {
+          id: capId,
+          version: 1,
+          ...presData,
+        };
+        info(`  Re-creating presentation: ${capId}`);
+        try {
+          await client.capabilities.createPresentation(capId, 1, presentation);
+          console.log(`  ✓ ${capId}`);
+        } catch (e: unknown) {
+          const msg = (e as Error).message || "";
+          if (msg.includes("403")) {
+            const token = requireEnv("SMARTTHINGS_TOKEN");
+            const res = await fetch(
+              `https://api.smartthings.com/v1/capabilities/${capId}/1/presentation`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(presData),
+              },
+            );
+            if (res.ok) {
+              console.log(`  ✓ ${capId} (via REST fallback)`);
+            } else {
+              const body = await res.text();
+              die(`Presentation ${capId}: ${res.status} ${body}`);
+            }
+          } else {
+            throw e;
+          }
+        }
+      }
+
+      // Re-upload driver package
+      const channelId = state.SMARTTHINGS_CHANNEL_ID;
+      if (channelId) {
+        const { driverId, version } = await packageAndUpload(client);
+        try {
+          await client.channels.assignDriver(channelId, driverId, version);
+        } catch {
+          // May already be assigned
+        }
+        info("Driver re-uploaded. Hub will auto-update within ~60 seconds.");
+      }
+
+      info("Redeploy complete.");
+      break;
+    }
+    case "logs": {
+      const hubId = requireEnv("SMARTTHINGS_HUB_ID");
+      const state = loadState();
+      const driverId = state.SMARTTHINGS_DRIVER_ID;
+      if (!driverId) die("No driver ID found. Run 'deploy' first.");
+
+      info(`Streaming logs for driver ${driverId} on hub ${hubId}...`);
+      info("Press Ctrl+C to stop.\n");
+
+      const token = requireEnv("SMARTTHINGS_TOKEN");
+
+      // Try cloud logcat endpoint first, fall back to listing installed drivers
+      const res = await fetch(
+        `https://api.smartthings.com/v1/hubdevices/${hubId}/drivers/${driverId}/logcat`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
+      if (res.ok) {
+        if (!res.body) die("No response body from logcat endpoint");
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          process.stdout.write(decoder.decode(value, { stream: true }));
+        }
+      } else if (res.status === 403) {
+        console.error(
+          "Logcat endpoint returned 403. Your PAT may lack the required scope.\n" +
+            "To view logs, use the SmartThings app:\n" +
+            "  Menu → Hub → Drivers → GivEnergy Battery → Logs\n" +
+            "Or visit: https://my.smartthings.com/advanced/hubs/" +
+            hubId,
+        );
+        process.exit(1);
+      } else {
+        const body = await res.text();
+        die(`Logcat failed: ${res.status} ${body}`);
+      }
+      break;
+    }
     default:
-      console.log("Usage: deploy-smartthings.ts {deploy|update}");
+      console.log(
+        "Usage: deploy-smartthings.ts {login|deploy|update|redeploy <caps...>|logs}",
+      );
       process.exit(1);
   }
 }
 
 main().catch((err) => {
+  if (isAuthError(err)) {
+    console.error(
+      "\nERROR: SmartThings rejected the request with 401 Unauthorized.\n" +
+        "Your SMARTTHINGS_TOKEN is missing, invalid, or expired (PATs expire 24h after creation).\n" +
+        "Run:  make smart-login\n",
+    );
+    process.exit(1);
+  }
   console.error("ERROR:", err.message || err);
   process.exit(1);
 });

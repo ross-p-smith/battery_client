@@ -92,6 +92,7 @@ const defaultState: BatteryState = {
   },
   isConnected: false,
   lastUpdate: null,
+  inverterSystemTime: null,
   notifications: [],
 };
 
@@ -241,6 +242,18 @@ function reducer(state: BatteryState, action: Action): BatteryState {
             lastUpdate: now,
             stats: { ...state.stats, [key]: parsed } as StatsData,
           };
+        }
+
+        case "raw": {
+          // raw/invertor/system_time → inverter-reported wall clock
+          if (path[1] === "invertor" && path[2] === "system_time") {
+            return {
+              ...state,
+              lastUpdate: now,
+              inverterSystemTime: value,
+            };
+          }
+          return state;
         }
 
         default:

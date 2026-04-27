@@ -7,26 +7,23 @@ components:
         version: 1
       - id: powerMeter
         version: 1
-      - id: temperatureMeasurement
-        version: 1
-      - id: voltageMeasurement
-        version: 1
       - id: instantheart30774.mqttStatus
-        version: 1
-      - id: refresh
-        version: 1
-      - id: healthCheck
         version: 1
     categories:
       - name: Battery
+  - id: schedule
+    label: "Schedules"
+    capabilities:
+      - id: instantheart30774.pauseSchedule
+        version: 1
+    categories:
+      - name: GenericSensor
   - id: grid
     label: "Grid"
     capabilities:
       - id: powerMeter
         version: 1
       - id: energyMeter
-        version: 1
-      - id: voltageMeasurement
         version: 1
     categories:
       - name: PowerMeasurementSensor
@@ -58,22 +55,9 @@ components:
         version: 1
     categories:
       - name: Switch
-  - id: schedule
-    label: "Schedules"
-    capabilities:
-      - id: instantheart30774.chargeSchedule
-        version: 1
-      - id: instantheart30774.dischargeSchedule
-        version: 1
-      - id: instantheart30774.pauseSchedule
-        version: 1
-    categories:
-      - name: GenericSensor
   - id: inverter
     label: "Inverter"
     capabilities:
-      - id: temperatureMeasurement
-        version: 1
       - id: instantheart30774.inverterInfo
         version: 1
       - id: instantheart30774.energyStats

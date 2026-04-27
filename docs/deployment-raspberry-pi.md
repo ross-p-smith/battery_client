@@ -108,7 +108,7 @@ Verify everything is running:
 docker compose ps
 ```
 
-Access the dashboard at `http://battery-pi.local:3000` from any device on your network.
+Access the dashboard at `http://battery-pi.local:8080` from any device on your network.
 
 ### Enable automatic updates
 

@@ -9,6 +9,8 @@ local topic_router = require "topic_router"
 local command_handlers = require "command_handlers"
 local caps = require "capabilities_ref"
 
+local DRIVER_VERSION = "1.1.0"
+
 local client = nil
 
 -- Getter closure for command handlers
@@ -78,6 +80,15 @@ end
 -- Lifecycle: init — start MQTT if preferences are configured
 local function device_init(driver, device)
   log.info("Device init:", device.label)
+  device:emit_component_event(device.profile.components.inverter,
+    caps.inverterInfo.info("v" .. DRIVER_VERSION))
+  device:emit_component_event(device.profile.components.schedule,
+    caps.pauseSchedule.pauseMode("PauseDischarge"))
+  device:emit_component_event(device.profile.components.schedule,
+    caps.pauseSchedule.pauseStart("23:00"))
+  device:emit_component_event(device.profile.components.schedule,
+    caps.pauseSchedule.pauseEnd("05:30"))
+
   if device.preferences.inverterSerial and device.preferences.inverterSerial ~= ""
      and device.preferences.brokerIp and device.preferences.brokerIp ~= "" then
     start_mqtt(device)
@@ -98,6 +109,14 @@ local function device_added(driver, device)
     capabilities.powerMeter.power({value = 0, unit = "W"}))
   device:emit_component_event(device.profile.components.house,
     capabilities.powerMeter.power({value = 0, unit = "W"}))
+  device:emit_component_event(device.profile.components.inverter,
+    caps.inverterInfo.info("v" .. DRIVER_VERSION))
+  device:emit_component_event(device.profile.components.schedule,
+    caps.pauseSchedule.pauseMode("Disabled"))
+  device:emit_component_event(device.profile.components.schedule,
+    caps.pauseSchedule.pauseStart(""))
+  device:emit_component_event(device.profile.components.schedule,
+    caps.pauseSchedule.pauseEnd(""))
   device:emit_component_event(device.profile.components.main,
     caps.mqttStatus.status("Not connected"))
 end

@@ -3,10 +3,10 @@
     {
       "displayType": "state",
       "state": {
-        "label": "Inverter Info",
+        "label": "Version",
         "value": "info.value"
       },
-      "label": "Inverter Info"
+      "label": "Driver Version"
     }
   ]
 }

@@ -29,7 +29,10 @@ deploy-logs:
 deploy-down:
 	ssh $(REMOTE_SSH) "cd $(REMOTE_DIR) && docker compose down"
 
-.PHONY: smartthings-deploy smartthings-update smartthings-clean smartthings-logs lint
+.PHONY: smartthings-deploy smartthings-update smartthings-redeploy smartthings-clean smartthings-logs smart-login lint
+
+smart-login:
+	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts login
 
 smart-deploy:
 	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts deploy
@@ -37,14 +40,27 @@ smart-deploy:
 smart-update:
 	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts update
 
+# Force-recreate one or more capabilities (drops & re-registers schema + presentation,
+# then re-uploads the driver). Pass capability names via CAPS=...
+#   Example: make smart-redeploy CAPS=pauseSchedule
+#   Example: make smart-redeploy CAPS="pauseSchedule targetSoc"
+smart-redeploy:
+	@if [ -z "$(CAPS)" ]; then \
+		echo "ERROR: CAPS is required. Example: make smart-redeploy CAPS=pauseSchedule"; \
+		exit 2; \
+	fi
+	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts redeploy $(CAPS)
+
 smart-clean:
 	@echo "To remove orphaned capabilities from SmartThings cloud:"
 	@echo "  smartthings capabilities:list"
 	@echo "  smartthings capabilities:delete <capability-id>"
 	@echo ""
-	@echo "To uninstall the driver from the hub:"
 	@echo "  smartthings edge:drivers:installed --hub $(SMARTTHINGS_HUB_ID)"
 	@echo "  smartthings edge:drivers:uninstall <driver-id> --hub $(SMARTTHINGS_HUB_ID)"
+
+smart-logs:
+	npx tsx smartthings-edge-driver/scripts/deploy-smartthings.ts logs
 
 lint:
 	npm run lint

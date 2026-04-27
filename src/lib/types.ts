@@ -188,6 +188,8 @@ export interface BatteryState {
   stats: StatsData;
   isConnected: boolean;
   lastUpdate: string | null;
+  /** Inverter-reported system time, sourced from `raw/invertor/system_time`. */
+  inverterSystemTime: string | null;
   notifications: CommandNotification[];
 }
 
