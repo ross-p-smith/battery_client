@@ -1,0 +1,12 @@
+{
+  "detailView": [
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Version",
+        "value": "info.value"
+      },
+      "label": "Driver Version"
+    }
+  ]
+}

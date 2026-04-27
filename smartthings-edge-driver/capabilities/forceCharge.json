@@ -1,0 +1,35 @@
+{
+  "id": "forceCharge",
+  "version": 1,
+  "name": "Force Charge",
+  "attributes": {
+    "switch": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "enum": [
+              "on",
+              "off"
+            ]
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "commands": {
+    "on": {
+      "name": "on",
+      "arguments": []
+    },
+    "off": {
+      "name": "off",
+      "arguments": []
+    }
+  }
+}
