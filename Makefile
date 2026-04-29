@@ -1,5 +1,3 @@
-.PHONY: mqtt-monitor
-
 ifneq ($(wildcard .env),)
 include .env
 export
@@ -10,10 +8,10 @@ endif
 REMOTE_SSH ?= $(REMOTE_USER)@$(REMOTE_HOST)
 REMOTE_DIR  ?= ~/battery-client
 
+.PHONY: mqtt-monitor deploy deploy-status deploy-logs deploy-down
+
 mqtt-monitor:
 	mosquitto_sub -h $(REMOTE_HOST) -t "GivEnergy/#" -v
-
-.PHONY: deploy deploy-status deploy-logs deploy-down
 
 deploy:
 	ssh $(REMOTE_SSH) "mkdir -p $(REMOTE_DIR)/mosquitto $(REMOTE_DIR)/givtcp-config"
