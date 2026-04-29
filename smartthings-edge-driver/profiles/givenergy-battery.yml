@@ -7,14 +7,14 @@ components:
         version: 1
       - id: powerMeter
         version: 1
-      - id: instantheart30774.mqttStatus
+      - id: <ns>.mqttStatus
         version: 1
     categories:
       - name: Battery
   - id: schedule
     label: "Schedules"
     capabilities:
-      - id: instantheart30774.pauseSchedule
+      - id: <ns>.pauseSchedule
         version: 1
     categories:
       - name: GenericSensor
@@ -43,24 +43,24 @@ components:
         version: 1
       - id: switchLevel
         version: 1
-      - id: instantheart30774.forceCharge
+      - id: <ns>.forceCharge
         version: 1
-      - id: instantheart30774.forceExport
+      - id: <ns>.forceExport
         version: 1
-      - id: instantheart30774.dischargeRate
+      - id: <ns>.dischargeRate
         version: 1
-      - id: instantheart30774.targetSoc
+      - id: <ns>.targetSoc
         version: 1
-      - id: instantheart30774.batteryReserve
+      - id: <ns>.batteryReserve
         version: 1
     categories:
       - name: Switch
   - id: inverter
     label: "Inverter"
     capabilities:
-      - id: instantheart30774.inverterInfo
+      - id: <ns>.inverterInfo
         version: 1
-      - id: instantheart30774.energyStats
+      - id: <ns>.energyStats
         version: 1
     categories:
       - name: GenericSensor
