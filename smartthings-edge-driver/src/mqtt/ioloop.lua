@@ -54,7 +54,7 @@ function ioloop_mt:__init(args)
 	args = args or {}
 	args.timeout = args.timeout or 0.005
 	args.sleep = args.sleep or 0
-	args.sleep_function = args.sleep_function or require("socket").sleep
+	args.sleep_function = args.sleep_function or require("cosock.socket").sleep
 	self.args = args
 	self.clients = {}
 	self.running = false --ioloop running flag, used by MQTT clients which are adding after this ioloop started to run

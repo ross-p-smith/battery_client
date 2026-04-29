@@ -1,7 +1,11 @@
 .PHONY: mqtt-monitor
 
+ifneq ($(wildcard .env),)
 include .env
 export
+else
+$(error .env file not found. Copy .env.example to .env and fill in the required values before running make.)
+endif
 
 REMOTE_SSH ?= $(REMOTE_USER)@$(REMOTE_HOST)
 REMOTE_DIR  ?= ~/battery-client
