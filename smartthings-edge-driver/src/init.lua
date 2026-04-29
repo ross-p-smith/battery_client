@@ -20,8 +20,9 @@ end
 
 -- Create MQTT client with device preferences
 local function create_mqtt_client(device)
+  local port = device.preferences.brokerPort or 1883
   local connect_args = {
-    uri = device.preferences.brokerIp,
+    uri = device.preferences.brokerIp .. ":" .. tostring(port),
     clean = true,
   }
   if device.preferences.mqttUser and device.preferences.mqttUser ~= "" then
