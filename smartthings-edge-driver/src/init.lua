@@ -13,6 +13,11 @@ local DRIVER_VERSION = "1.1.0"
 
 local client = nil
 
+-- Per-device generation counter to ensure a single MQTT loop is active.
+-- Incrementing the counter for a device causes any running loop for that device
+-- to detect the change and exit, so start_mqtt is effectively a singleton.
+local mqtt_generation = {}
+
 -- Getter closure for command handlers
 local function get_client()
   return client
@@ -59,12 +64,24 @@ local function create_mqtt_client(device)
   return c
 end
 
--- Start MQTT in background coroutine with reconnection loop
+-- Start MQTT in background coroutine with reconnection loop (singleton per device).
+-- Incrementing the generation counter signals any existing loop for this device
+-- to exit, so at most one reconnect loop is active per device at any time.
 local function start_mqtt(device)
+  local device_id = device.id
+  mqtt_generation[device_id] = (mqtt_generation[device_id] or 0) + 1
+  local my_generation = mqtt_generation[device_id]
+
+  if client then
+    client:disconnect()
+    client = nil
+  end
+
   client = create_mqtt_client(device)
   cosock.spawn(function()
-    while true do
+    while mqtt_generation[device_id] == my_generation do
       local ok, err = mqtt.run_sync(client)
+      if mqtt_generation[device_id] ~= my_generation then break end
       if not ok then
         log.warn("MQTT disconnected:", tostring(err))
         device:offline()
@@ -72,9 +89,11 @@ local function start_mqtt(device)
           caps.mqttStatus.status("Reconnecting..."))
         local delay = device.preferences.reconnectDelay or 15
         socket.sleep(delay)
+        if mqtt_generation[device_id] ~= my_generation then break end
         client = create_mqtt_client(device)
       end
     end
+    log.info("MQTT loop exiting (superseded)")
   end, "MQTT client loop")
 end
 
@@ -122,13 +141,17 @@ local function device_added(driver, device)
     caps.mqttStatus.status("Not connected"))
 end
 
--- Lifecycle: removed — disconnect MQTT
+-- Lifecycle: removed — signal loop to exit and disconnect MQTT
 local function device_removed(driver, device)
   log.info("Device removed:", device.label)
+  -- Increment generation to signal the running loop to exit
+  local device_id = device.id
+  mqtt_generation[device_id] = (mqtt_generation[device_id] or 0) + 1
   if client then
     client:disconnect()
     client = nil
   end
+  mqtt_generation[device_id] = nil
 end
 
 -- Lifecycle: infoChanged — reconnect on preference change
@@ -140,7 +163,6 @@ local function info_changed(driver, device, event, args)
        old.brokerPort ~= device.preferences.brokerPort or
        old.mqttUser ~= device.preferences.mqttUser then
       log.info("Preferences changed, reconnecting MQTT")
-      if client then client:disconnect() end
       start_mqtt(device)
     end
   end
@@ -149,9 +171,6 @@ end
 -- Refresh handler — reconnects MQTT
 local function handle_refresh(driver, device, command)
   log.info("Refresh requested")
-  if client then
-    client:disconnect()
-  end
   start_mqtt(device)
 end
 
