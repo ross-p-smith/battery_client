@@ -6,7 +6,7 @@ services:
         NEXT_PUBLIC_MQTT_URL: "${NEXT_PUBLIC_MQTT_URL:-ws://mosquitto:9001}"
         NEXT_PUBLIC_INVERTER_SERIAL: "${NEXT_PUBLIC_INVERTER_SERIAL}"
     ports:
-      - "3000:3000"
+      - "8080:8080"
     restart: unless-stopped
     depends_on:
       mosquitto:
@@ -22,12 +22,17 @@ services:
           "--no-verbose",
           "--tries=1",
           "--spider",
-          "http://localhost:3000",
+          "http://localhost:8080",
         ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   mosquitto:
     image: eclipse-mosquitto:2
@@ -42,6 +47,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   givtcp:
     image: britkat/giv_tcp-dev:3.5.7
@@ -50,8 +60,19 @@ services:
       - TZ=Europe/London
     ports:
       - "8099:8099"
+      # GivTCP web dashboard (enabled via Web_Dash=true in allsettings.json,
+      # listening on Web_Dash_Port). Browse to http://<host>:3000.
+      - "3000:3000"
+      # GivTCP REST API (/readData). The dashboard's JS fetches from this
+      # port directly from the browser, so it must be published.
+      - "6345:6345"
     volumes:
       - ./givtcp-config:/config/GivTCP
     depends_on:
       mosquitto:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

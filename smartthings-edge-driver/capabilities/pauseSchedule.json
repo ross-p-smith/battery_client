@@ -1,0 +1,80 @@
+{
+  "id": "pauseSchedule",
+  "version": 1,
+  "name": "Pause Schedule",
+  "attributes": {
+    "pauseMode": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "enum": ["Disabled", "PauseCharge", "PauseDischarge", "PauseBoth"]
+          }
+        },
+        "required": ["value"],
+        "additionalProperties": false
+      }
+    },
+    "pauseStart": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": ["value"],
+        "additionalProperties": false
+      }
+    },
+    "pauseEnd": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": ["value"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "commands": {
+    "setPauseMode": {
+      "name": "setPauseMode",
+      "arguments": [
+        {
+          "name": "mode",
+          "schema": {
+            "type": "string",
+            "enum": ["Disabled", "PauseCharge", "PauseDischarge", "PauseBoth"]
+          }
+        }
+      ]
+    },
+    "setPauseStart": {
+      "name": "setPauseStart",
+      "arguments": [
+        {
+          "name": "time",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "setPauseEnd": {
+      "name": "setPauseEnd",
+      "arguments": [
+        {
+          "name": "time",
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
+    }
+  }
+}

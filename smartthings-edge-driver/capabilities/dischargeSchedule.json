@@ -1,0 +1,42 @@
+{
+  "id": "dischargeSchedule",
+  "version": 1,
+  "name": "Discharge Schedule",
+  "attributes": {
+    "enabled": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string",
+            "enum": ["on", "off"]
+          }
+        },
+        "required": ["value"],
+        "additionalProperties": false
+      }
+    },
+    "timeSlot": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": ["value"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "commands": {
+    "enable": {
+      "name": "enable",
+      "arguments": []
+    },
+    "disable": {
+      "name": "disable",
+      "arguments": []
+    }
+  }
+}

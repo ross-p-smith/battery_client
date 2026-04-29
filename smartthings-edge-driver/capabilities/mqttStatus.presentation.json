@@ -1,0 +1,12 @@
+{
+  "detailView": [
+    {
+      "displayType": "state",
+      "state": {
+        "label": "MQTT Status",
+        "value": "status.value"
+      },
+      "label": "MQTT Status"
+    }
+  ]
+}

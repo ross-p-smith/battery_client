@@ -5,10 +5,12 @@
   "author": "Ross Smith",
   "license": "MIT",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 8080",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "smart:deploy": "tsx smartthings-edge-driver/scripts/deploy-smartthings.ts deploy",
+    "smart:update": "tsx smartthings-edge-driver/scripts/deploy-smartthings.ts update"
   },
   "dependencies": {
     "mqtt": "^5.15.1",
@@ -17,13 +19,17 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@smartthings/core-sdk": "^8.5.1",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^22",
+    "@types/archiver": "^7.0.0",
+    "@types/node": "^24",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "archiver": "^7.0.1",
     "eslint": "^9",
     "eslint-config-next": "16.2.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

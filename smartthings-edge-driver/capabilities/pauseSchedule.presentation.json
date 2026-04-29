@@ -1,0 +1,114 @@
+{
+  "dashboard": {
+    "states": [
+      {
+        "label": "Pause: {{pauseMode.value}}"
+      }
+    ]
+  },
+  "detailView": [
+    {
+      "displayType": "list",
+      "list": {
+        "command": {
+          "name": "setPauseMode",
+          "alternatives": [
+            {
+              "key": "Disabled",
+              "value": "Disabled",
+              "type": "active"
+            },
+            {
+              "key": "PauseCharge",
+              "value": "Pause Charge",
+              "type": "active"
+            },
+            {
+              "key": "PauseDischarge",
+              "value": "Pause Discharge",
+              "type": "active"
+            },
+            {
+              "key": "PauseBoth",
+              "value": "Pause Both",
+              "type": "active"
+            }
+          ]
+        },
+        "state": {
+          "value": "pauseMode.value",
+          "alternatives": [
+            {
+              "key": "Disabled",
+              "value": "Disabled"
+            },
+            {
+              "key": "PauseCharge",
+              "value": "Pause Charge"
+            },
+            {
+              "key": "PauseDischarge",
+              "value": "Pause Discharge"
+            },
+            {
+              "key": "PauseBoth",
+              "value": "Pause Both"
+            }
+          ]
+        }
+      },
+      "label": "Pause Mode"
+    },
+    {
+      "displayType": "textField",
+      "textField": {
+        "command": "setPauseStart",
+        "argumentType": "string",
+        "value": "pauseStart.value"
+      },
+      "label": "Pause Start (HH:MM)"
+    },
+    {
+      "displayType": "textField",
+      "textField": {
+        "command": "setPauseEnd",
+        "argumentType": "string",
+        "value": "pauseEnd.value"
+      },
+      "label": "Pause End (HH:MM)"
+    }
+  ],
+  "automation": {
+    "conditions": [
+      {
+        "label": "Pause Mode",
+        "displayType": "list",
+        "list": {
+          "alternatives": [
+            { "key": "Disabled", "value": "Disabled" },
+            { "key": "PauseCharge", "value": "Pause Charge" },
+            { "key": "PauseDischarge", "value": "Pause Discharge" },
+            { "key": "PauseBoth", "value": "Pause Both" }
+          ],
+          "value": "pauseMode.value",
+          "supportedValues": "pauseMode.value"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "label": "Pause Mode",
+        "displayType": "list",
+        "list": {
+          "command": "setPauseMode",
+          "alternatives": [
+            { "key": "Disabled", "value": "Disabled" },
+            { "key": "PauseCharge", "value": "Pause Charge" },
+            { "key": "PauseDischarge", "value": "Pause Discharge" },
+            { "key": "PauseBoth", "value": "Pause Both" }
+          ]
+        }
+      }
+    ]
+  }
+}

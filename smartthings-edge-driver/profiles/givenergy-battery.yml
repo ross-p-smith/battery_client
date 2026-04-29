@@ -1,0 +1,117 @@
+name: givenergy-battery
+components:
+  - id: main
+    label: "Battery"
+    capabilities:
+      - id: battery
+        version: 1
+      - id: powerMeter
+        version: 1
+      - id: <ns>.mqttStatus
+        version: 1
+    categories:
+      - name: Battery
+  - id: schedule
+    label: "Schedules"
+    capabilities:
+      - id: <ns>.pauseSchedule
+        version: 1
+    categories:
+      - name: GenericSensor
+  - id: grid
+    label: "Grid"
+    capabilities:
+      - id: powerMeter
+        version: 1
+      - id: energyMeter
+        version: 1
+    categories:
+      - name: PowerMeasurementSensor
+  - id: house
+    label: "House"
+    capabilities:
+      - id: powerMeter
+        version: 1
+      - id: energyMeter
+        version: 1
+    categories:
+      - name: PowerMeasurementSensor
+  - id: control
+    label: "Controls"
+    capabilities:
+      - id: mode
+        version: 1
+      - id: switchLevel
+        version: 1
+      - id: <ns>.forceCharge
+        version: 1
+      - id: <ns>.forceExport
+        version: 1
+      - id: <ns>.dischargeRate
+        version: 1
+      - id: <ns>.targetSoc
+        version: 1
+      - id: <ns>.batteryReserve
+        version: 1
+    categories:
+      - name: Switch
+  - id: inverter
+    label: "Inverter"
+    capabilities:
+      - id: <ns>.inverterInfo
+        version: 1
+      - id: <ns>.energyStats
+        version: 1
+    categories:
+      - name: GenericSensor
+preferences:
+  - title: "MQTT Broker IP Address"
+    name: brokerIp
+    description: "IP address of the Mosquitto broker"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      default: "192.168.1.xxx"
+  - title: "MQTT Broker Port"
+    name: brokerPort
+    description: "MQTT broker port (default 1883)"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 1
+      maximum: 65535
+      default: 1883
+  - title: "MQTT Username"
+    name: mqttUser
+    description: "Leave blank for anonymous"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - title: "MQTT Password"
+    name: mqttPass
+    description: "MQTT broker password"
+    required: false
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - title: "Inverter Serial Number"
+    name: inverterSerial
+    description: "GivEnergy inverter serial (e.g., CE1234G567)"
+    required: true
+    preferenceType: string
+    definition:
+      stringType: text
+      default: ""
+  - title: "Reconnection Delay (seconds)"
+    name: reconnectDelay
+    description: "Seconds to wait before reconnecting on failure"
+    required: false
+    preferenceType: integer
+    definition:
+      minimum: 5
+      maximum: 300
+      default: 15
