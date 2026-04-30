@@ -15,6 +15,13 @@ local transforms = {
   string = function(val)
     return val
   end,
+  -- GivTCP publishes time slots as "HH:MM:SS"; SmartThings time fields expect "HH:MM".
+  time_slot = function(val)
+    if type(val) ~= "string" then return nil end
+    local h, m = val:match("^(%d%d):(%d%d)")
+    if not h then return nil end
+    return h .. ":" .. m
+  end,
   enable_disable = function(val)
     local lower = string.lower(tostring(val))
     if lower == "enable" or lower == "true" or lower == "1" then
@@ -50,8 +57,8 @@ local routing_table = {
 
   -- pause schedule
   ["Control/Battery_pause_mode"]          = { comp = "schedule", cap = "pauseSchedule", attr = "pauseMode", xform = "string" },
-  ["Control/Battery_pause_start_time_slot"] = { comp = "schedule", cap = "pauseSchedule", attr = "pauseStart", xform = "string" },
-  ["Control/Battery_pause_end_time_slot"]   = { comp = "schedule", cap = "pauseSchedule", attr = "pauseEnd", xform = "string" },
+  ["Control/Battery_pause_start_time_slot"] = { comp = "schedule", cap = "pauseSchedule", attr = "pauseStart", xform = "time_slot" },
+  ["Control/Battery_pause_end_time_slot"]   = { comp = "schedule", cap = "pauseSchedule", attr = "pauseEnd", xform = "time_slot" },
 
   -- inverter component
   ["Energy/Today/Export_Energy_Today_kWh"]               = { comp = "inverter", cap = "energyStats", attr = "exportEnergy", xform = "number" },
