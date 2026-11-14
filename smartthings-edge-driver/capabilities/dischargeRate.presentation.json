@@ -1,0 +1,19 @@
+{
+  "detailView": [
+    {
+      "displayType": "slider",
+      "slider": {
+        "range": [
+          0,
+          100
+        ],
+        "step": 1,
+        "unit": "rate.unit",
+        "command": "setRate",
+        "argumentName": "rate",
+        "value": "rate.value"
+      },
+      "label": "Discharge Rate"
+    }
+  ]
+}

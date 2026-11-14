@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useBattery } from "@/context/BatteryContext";
+import { batteryRateValue, validMaxBatteryRate } from "@/lib/control";
 
 function parseTimeSlot(timeStr: string): string {
   if (!timeStr || timeStr === "00:00:00") return "00:00";
@@ -16,25 +17,27 @@ function SliderControl({
   step,
   unit,
   onCommit,
+  unavailableReason,
 }: {
   label: string;
-  value: number;
+  value: number | null;
   min: number;
   max: number;
   step: number;
   unit: string;
   onCommit: (v: number) => void;
+  unavailableReason?: string;
 }) {
   const [local, setLocal] = useState<number | null>(null);
-  const display = local ?? value;
+  const display = value === null ? null : local ?? value;
+  const disabled = display === null || !!unavailableReason;
 
   return (
     <div className="rounded-lg bg-zinc-800 p-3">
       <div className="mb-2 flex items-center justify-between">
         <span className="text-xs text-zinc-400">{label}</span>
         <span className="tabular-nums text-sm font-semibold text-zinc-200">
-          {display}
-          {unit}
+          {display === null ? "Unavailable" : `${display}${unit}`}
         </span>
       </div>
       <input
@@ -42,18 +45,21 @@ function SliderControl({
         min={min}
         max={max}
         step={step}
-        value={display}
+        value={display ?? min}
+        disabled={disabled}
+        aria-label={label}
         onChange={(e) => setLocal(Number(e.target.value))}
         onMouseUp={() => {
-          if (local !== null) onCommit(local);
+          if (!disabled && local !== null) onCommit(local);
           setLocal(null);
         }}
         onTouchEnd={() => {
-          if (local !== null) onCommit(local);
+          if (!disabled && local !== null) onCommit(local);
           setLocal(null);
         }}
-        className="w-full accent-emerald-500"
+        className="w-full accent-emerald-500 disabled:cursor-not-allowed disabled:opacity-40"
       />
+      {unavailableReason && <p className="mt-1 text-xs text-amber-400">{unavailableReason}</p>}
     </div>
   );
 }
@@ -136,7 +142,12 @@ export default function BatteryControls() {
   const pauseWindowChanged =
     pauseStart !== currentPauseStart || pauseEnd !== currentPauseEnd;
 
-  const maxBatRate = inverter.Invertor_Max_Bat_Rate || 2600;
+  const maxBatRate = inverter.Invertor_Max_Bat_Rate;
+  const chargeRate = batteryRateValue(maxBatRate, control.Battery_Charge_Rate);
+  const dischargeRate = batteryRateValue(maxBatRate, control.Battery_Discharge_Rate);
+  const rateUnavailableReason = !validMaxBatteryRate(maxBatRate)
+    ? "Rate writes disabled: GivTCP maximum battery power is missing or invalid; derived watt readings cannot be trusted."
+    : "Rate writes disabled: waiting for valid battery rate telemetry.";
 
   return (
     <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
@@ -257,21 +268,23 @@ export default function BatteryControls() {
       <div className="mb-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SliderControl
           label="Charge Rate"
-          value={control.Battery_Charge_Rate ?? 0}
+          value={chargeRate}
           min={0}
-          max={maxBatRate}
+          max={validMaxBatteryRate(maxBatRate) ? maxBatRate : 0}
           step={100}
           unit=" W"
           onCommit={(v) => publishControl("setChargeRate", String(v))}
+          unavailableReason={chargeRate === null ? rateUnavailableReason : undefined}
         />
         <SliderControl
           label="Discharge Rate"
-          value={control.Battery_Discharge_Rate ?? 0}
+          value={dischargeRate}
           min={0}
-          max={maxBatRate}
+          max={validMaxBatteryRate(maxBatRate) ? maxBatRate : 0}
           step={100}
           unit=" W"
           onCommit={(v) => publishControl("setDischargeRate", String(v))}
+          unavailableReason={dischargeRate === null ? rateUnavailableReason : undefined}
         />
         <SliderControl
           label="Battery Reserve"

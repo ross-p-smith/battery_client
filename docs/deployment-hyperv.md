@@ -6,7 +6,7 @@ This guide walks through deploying the battery client application stack on a Hyp
 
 The stack consists of three Docker containers:
 
-- **Next.js app** — battery monitoring dashboard (port 3000)
+- **Next.js app** — battery monitoring dashboard (port 8080)
 - **Eclipse Mosquitto** — MQTT broker (ports 1883, 9001)
 - **GivTCP** — GivEnergy inverter bridge (port 8099)
 
@@ -237,7 +237,7 @@ Expected output shows all three services as `Up` with health status `healthy` fo
 Access the dashboard from any device on your LAN:
 
 ```
-http://192.168.1.150:3000
+http://192.168.1.150:8080
 ```
 
 ## Step 5 — Networking
@@ -247,7 +247,7 @@ The external virtual switch places the VM directly on your LAN with its own IP a
 ```
 Browser (any LAN device)
     │
-    ├── http://192.168.1.150:3000  →  Next.js dashboard
+    ├── http://192.168.1.150:8080  →  Next.js dashboard
     └── ws://192.168.1.150:9001    →  Mosquitto WebSocket
                                         │
                                         ▼
@@ -256,7 +256,7 @@ Browser (any LAN device)
                     ┌───────────────────┼──────────────────┐
                     │                   │                   │
                 Next.js app       Mosquitto MQTT        GivTCP
-                (port 3000)       (1883 + 9001)       (port 8099)
+                (port 8080)       (1883 + 9001)       (port 8099)
                                                           │
                                                           ▼
                                               GivEnergy Inverter

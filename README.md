@@ -58,13 +58,13 @@ A real-time GivEnergy All-in-One V2 battery monitoring and control dashboard bui
 4. Open the command palette (`Ctrl+Shift+P`) and select **Dev Containers: Rebuild and Reopen in Container**.
 
 5. The devcontainer starts three services:
-   - **app** — Next.js dev server on port 3000
+   - **app** — Next.js dev server on port 8080
    - **mosquitto** — MQTT broker (port 1883) with WebSocket (port 9001)
    - **givtcp** — GivTCP container reading config from `givtcp-config/allsettings.json`
 
 6. Validate the setup:
    - `http://localhost:8099/settings` should show your configured inverter IP/serial and MQTT fields
-   - `http://localhost:3000` should load the dashboard
+   - `http://localhost:8080` should load the dashboard
 
 7. If you need to inspect MQTT traffic:
 
@@ -123,6 +123,31 @@ The browser connects directly to the Mosquitto MQTT broker over WebSocket. GivTC
 
 ## Development
 
+> **Always use the Makefile.** All deploy, log, lint, MQTT, and SmartThings
+> operations are wrapped by `make` targets so they pick up `.env`,
+> `REMOTE_HOST`/`REMOTE_USER`, and the correct script paths. Do not call
+> `docker compose`, `npx tsx ...`, or the `smartthings` CLI directly — add a
+> Makefile target instead and document it here.
+
+Common targets:
+
+| Target                               | What it does                                                                                                                                                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `make deploy`                        | Sync code and bring up the docker compose stack on `REMOTE_HOST`                                                                                                                                     |
+| `make deploy-status`                 | `docker compose ps` on the remote host                                                                                                                                                               |
+| `make deploy-logs`                   | Tail `docker compose logs -f` on the remote host                                                                                                                                                     |
+| `make deploy-down`                   | Stop the remote docker compose stack                                                                                                                                                                 |
+| `make mqtt-monitor`                  | Subscribe to `GivEnergy/#` on the broker                                                                                                                                                             |
+| `make smart-login`                   | Generate + store a SmartThings PAT in `.env` (PATs expire after 24 h)                                                                                                                                |
+| `make smart-deploy`                  | Register capabilities/presentations, package + install the edge driver                                                                                                                               |
+| `make smart-update`                  | Re-upload the driver only (no capability changes)                                                                                                                                                    |
+| `make smart-redeploy CAPS="cap1..."` | Drop and recreate the named capabilities + presentations, then re-upload the driver. Use this whenever a `*.presentation.json` changes (SmartThings won't accept a PUT to an existing presentation). |
+| `make smart-logs`                    | Stream cloud logcat for the installed driver                                                                                                                                                         |
+| `make smart-clean`                   | Print manual cleanup commands for orphaned capabilities and drivers                                                                                                                                  |
+| `make lint`                          | Run `npm run lint` and `luacheck src/` for the edge driver                                                                                                                                           |
+
+For local Next.js work inside the devcontainer:
+
 ```bash
 # Install dependencies (runs automatically in devcontainer)
 npm install
@@ -132,9 +157,6 @@ npm run dev
 
 # Build for production
 npm run build
-
-# Lint
-npm run lint
 ```
 
 ## Project Structure

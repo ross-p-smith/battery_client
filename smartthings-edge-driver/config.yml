@@ -1,0 +1,6 @@
+name: "GivEnergy Battery"
+packageKey: "givenergy-battery"
+description: "GivTCP battery monitor and controller via MQTT"
+permissions:
+  lan: {}
+  discovery: {}

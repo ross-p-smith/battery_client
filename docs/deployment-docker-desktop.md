@@ -91,7 +91,7 @@ Verify everything is running:
 docker compose ps
 ```
 
-All three services (app, mosquitto, givtcp) should show `Up` with healthy status. Open `http://localhost:3000` to access the dashboard.
+All three services (app, mosquitto, givtcp) should show `Up` with healthy status. Open `http://localhost:8080` to access the dashboard.
 
 ## MQTT URL configuration
 

@@ -1,0 +1,22 @@
+{
+  "id": "inverterInfo",
+  "version": 1,
+  "name": "Inverter Info",
+  "attributes": {
+    "info": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "commands": {}
+}

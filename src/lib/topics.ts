@@ -74,6 +74,7 @@ export function parseTopicPath(topic: string): string[] {
 export interface CommandMeta {
   label: string;
   watchKeys: string[];
+  confirmation?: "text" | "number" | "time" | "duration" | "unavailable";
 }
 
 export const commandMeta: Record<string, CommandMeta> = {
@@ -83,16 +84,18 @@ export const commandMeta: Record<string, CommandMeta> = {
     label: "Pause Mode",
     watchKeys: ["Battery_pause_mode"],
   },
-  setChargeRate: { label: "Charge Rate", watchKeys: ["Battery_Charge_Rate"] },
+  setChargeRate: { label: "Charge Rate", watchKeys: ["Battery_Charge_Rate"], confirmation: "number" },
   setDischargeRate: {
     label: "Discharge Rate",
     watchKeys: ["Battery_Discharge_Rate"],
+    confirmation: "number",
   },
   setBatteryReserve: {
     label: "Battery Reserve",
     watchKeys: ["Battery_Power_Reserve"],
+    confirmation: "number",
   },
-  setChargeTarget: { label: "Charge Target", watchKeys: ["Target_SOC"] },
+  setChargeTarget: { label: "Charge Target", watchKeys: ["Target_SOC"], confirmation: "number" },
   enableChargeSchedule: {
     label: "Charge Schedule",
     watchKeys: ["Enable_Charge_Schedule"],
@@ -109,98 +112,121 @@ export const commandMeta: Record<string, CommandMeta> = {
     label: "Charge Target",
     watchKeys: ["Enable_Charge_Target"],
   },
-  forceCharge: { label: "Force Charge", watchKeys: ["Force_Charge"] },
-  forceExport: { label: "Force Export", watchKeys: ["Force_Export"] },
+  forceCharge: { label: "Force Charge", watchKeys: ["Force_Charge"], confirmation: "duration" },
+  forceExport: { label: "Force Export", watchKeys: ["Force_Export"], confirmation: "duration" },
   tempPauseCharge: {
     label: "Temp Pause Charge",
     watchKeys: ["Temp_Pause_Charge"],
+    confirmation: "duration",
   },
   tempPauseDischarge: {
     label: "Temp Pause Discharge",
     watchKeys: ["Temp_Pause_Discharge"],
+    confirmation: "duration",
   },
   setPauseStart: {
     label: "Pause Start",
     watchKeys: ["Battery_pause_start_time_slot"],
+    confirmation: "time",
   },
   setPauseEnd: {
     label: "Pause End",
     watchKeys: ["Battery_pause_end_time_slot"],
+    confirmation: "time",
   },
   setChargeStart1: {
     label: "Charge Slot 1 Start",
     watchKeys: ["Charge_start_time_slot_1"],
+    confirmation: "time",
   },
   setChargeEnd1: {
     label: "Charge Slot 1 End",
     watchKeys: ["Charge_end_time_slot_1"],
+    confirmation: "time",
   },
   setChargeStart2: {
     label: "Charge Slot 2 Start",
     watchKeys: ["Charge_start_time_slot_2"],
+    confirmation: "time",
   },
   setChargeEnd2: {
     label: "Charge Slot 2 End",
     watchKeys: ["Charge_end_time_slot_2"],
+    confirmation: "time",
   },
   setChargeStart3: {
     label: "Charge Slot 3 Start",
     watchKeys: ["Charge_start_time_slot_3"],
+    confirmation: "time",
   },
   setChargeEnd3: {
     label: "Charge Slot 3 End",
     watchKeys: ["Charge_end_time_slot_3"],
+    confirmation: "time",
   },
   setDischargeStart1: {
     label: "Discharge Slot 1 Start",
     watchKeys: ["Discharge_start_time_slot_1"],
+    confirmation: "time",
   },
   setDischargeEnd1: {
     label: "Discharge Slot 1 End",
     watchKeys: ["Discharge_end_time_slot_1"],
+    confirmation: "time",
   },
   setDischargeStart2: {
     label: "Discharge Slot 2 Start",
     watchKeys: ["Discharge_start_time_slot_2"],
+    confirmation: "time",
   },
   setDischargeEnd2: {
     label: "Discharge Slot 2 End",
     watchKeys: ["Discharge_end_time_slot_2"],
+    confirmation: "time",
   },
   setDischargeStart3: {
     label: "Discharge Slot 3 Start",
     watchKeys: ["Discharge_start_time_slot_3"],
+    confirmation: "time",
   },
   setDischargeEnd3: {
     label: "Discharge Slot 3 End",
     watchKeys: ["Discharge_end_time_slot_3"],
+    confirmation: "time",
   },
   setChargeTarget1: {
     label: "Charge Target 1",
     watchKeys: ["Charge_Target_SOC_1"],
+    confirmation: "number",
   },
   setChargeTarget2: {
     label: "Charge Target 2",
     watchKeys: ["Charge_Target_SOC_2"],
+    confirmation: "number",
   },
   setChargeTarget3: {
     label: "Charge Target 3",
     watchKeys: ["Charge_Target_SOC_3"],
+    confirmation: "number",
   },
   setDischargeTarget1: {
     label: "Discharge Target 1",
     watchKeys: ["Discharge_Target_SOC_1"],
+    confirmation: "number",
   },
   setDischargeTarget2: {
     label: "Discharge Target 2",
     watchKeys: ["Discharge_Target_SOC_2"],
+    confirmation: "number",
   },
   setDischargeTarget3: {
     label: "Discharge Target 3",
     watchKeys: ["Discharge_Target_SOC_3"],
+    confirmation: "number",
   },
   enableDischarge: {
     label: "Enable Discharge",
     watchKeys: ["Enable_Discharge_Schedule"],
+    confirmation: "unavailable",
   },
 };

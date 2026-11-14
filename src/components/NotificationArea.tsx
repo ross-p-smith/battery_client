@@ -10,7 +10,7 @@ const statusConfig: Record<
   pending: {
     icon: "⏳",
     color: "bg-cyan-900/60 text-cyan-300 border-cyan-800",
-    text: "Sending...",
+    text: "Awaiting matching telemetry...",
   },
   success: {
     icon: "✓",
@@ -20,7 +20,7 @@ const statusConfig: Record<
   timeout: {
     icon: "⚠",
     color: "bg-amber-900/60 text-amber-300 border-amber-800",
-    text: "No response",
+    text: "Not confirmed",
   },
   error: {
     icon: "✗",
@@ -47,7 +47,9 @@ export default function NotificationArea() {
               <span>
                 <span className="mr-2">{config.icon}</span>
                 <span className="font-medium">{n.label}</span>
+                <span className="ml-2">{n.payload}</span>
                 <span className="ml-2 opacity-75">{config.text}</span>
+                {n.message && <span className="ml-2 opacity-75">{n.message}</span>}
               </span>
               <button
                 onClick={() => dismissNotification(n.id)}

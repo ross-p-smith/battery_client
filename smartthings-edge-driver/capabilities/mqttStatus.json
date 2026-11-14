@@ -1,0 +1,22 @@
+{
+  "id": "mqttStatus",
+  "version": 1,
+  "name": "MQTT Status",
+  "attributes": {
+    "status": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "commands": {}
+}

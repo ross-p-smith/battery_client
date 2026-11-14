@@ -163,7 +163,7 @@ export interface InverterInfo {
   Battery_Type: string;
   Export_Limit: number;
   Invertor_Firmware: string;
-  Invertor_Max_Bat_Rate: number;
+  Invertor_Max_Bat_Rate: number | null;
   Invertor_Max_Inv_Rate: number;
   Invertor_Serial_Number: string;
   Invertor_Temperature: number;
@@ -188,6 +188,8 @@ export interface BatteryState {
   stats: StatsData;
   isConnected: boolean;
   lastUpdate: string | null;
+  /** Inverter-reported system time, sourced from `raw/invertor/system_time`. */
+  inverterSystemTime: string | null;
   notifications: CommandNotification[];
 }
 
@@ -201,4 +203,6 @@ export interface CommandNotification {
   timestamp: number;
   /** The control key(s) to watch for confirmation */
   watchKeys: string[];
+  payload: string;
+  message?: string;
 }

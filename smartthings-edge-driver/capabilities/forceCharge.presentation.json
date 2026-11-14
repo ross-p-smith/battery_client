@@ -1,0 +1,42 @@
+{
+  "dashboard": {
+    "states": [
+      {
+        "label": "Force Charge: {{switch.value}}"
+      }
+    ],
+    "actions": [
+      {
+        "displayType": "toggleSwitch",
+        "toggleSwitch": {
+          "command": {
+            "on": "on",
+            "off": "off"
+          },
+          "state": {
+            "value": "switch.value",
+            "on": "on",
+            "off": "off"
+          }
+        }
+      }
+    ]
+  },
+  "detailView": [
+    {
+      "displayType": "toggleSwitch",
+      "toggleSwitch": {
+        "command": {
+          "on": "on",
+          "off": "off"
+        },
+        "state": {
+          "value": "switch.value",
+          "on": "on",
+          "off": "off"
+        }
+      },
+      "label": "Force Charge"
+    }
+  ]
+}

@@ -61,7 +61,7 @@
   "export_rate": 0.04,
   "day_rate_start": "05:30",
   "night_rate_start": "23:30",
-  "Web_Dash": false,
+  "Web_Dash": true,
   "Web_Dash_Port": 3000,
   "Smart_Target": false,
   "GE_API": "",

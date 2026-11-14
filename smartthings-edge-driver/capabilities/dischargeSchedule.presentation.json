@@ -1,0 +1,50 @@
+{
+  "dashboard": {
+    "states": [
+      {
+        "label": "Discharge Schedule: {{enabled.value}}"
+      }
+    ],
+    "actions": [
+      {
+        "displayType": "toggleSwitch",
+        "toggleSwitch": {
+          "command": {
+            "on": "enable",
+            "off": "disable"
+          },
+          "state": {
+            "value": "enabled.value",
+            "on": "on",
+            "off": "off"
+          }
+        }
+      }
+    ]
+  },
+  "detailView": [
+    {
+      "displayType": "toggleSwitch",
+      "toggleSwitch": {
+        "command": {
+          "on": "enable",
+          "off": "disable"
+        },
+        "state": {
+          "value": "enabled.value",
+          "on": "on",
+          "off": "off"
+        }
+      },
+      "label": "Schedule Toggle"
+    },
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Slot 1",
+        "value": "timeSlot.value"
+      },
+      "label": "Time Slot"
+    }
+  ]
+}

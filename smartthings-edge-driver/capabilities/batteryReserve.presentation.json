@@ -1,0 +1,19 @@
+{
+  "detailView": [
+    {
+      "displayType": "slider",
+      "slider": {
+        "range": [
+          0,
+          100
+        ],
+        "step": 1,
+        "unit": "level.unit",
+        "command": "setLevel",
+        "argumentName": "level",
+        "value": "level.value"
+      },
+      "label": "Battery Reserve"
+    }
+  ]
+}

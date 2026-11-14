@@ -1,0 +1,31 @@
+{
+  "detailView": [
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Export Energy",
+        "value": "exportEnergy.value",
+        "unit": "exportEnergy.unit"
+      },
+      "label": "Export Energy"
+    },
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Self Consumption",
+        "value": "selfConsumption.value",
+        "unit": "selfConsumption.unit"
+      },
+      "label": "Self Consumption"
+    },
+    {
+      "displayType": "state",
+      "state": {
+        "label": "Battery Throughput",
+        "value": "batteryThroughput.value",
+        "unit": "batteryThroughput.unit"
+      },
+      "label": "Battery Throughput"
+    }
+  ]
+}

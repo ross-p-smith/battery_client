@@ -1,0 +1,45 @@
+{
+  "id": "dischargeRate",
+  "version": 1,
+  "name": "Discharge Rate",
+  "attributes": {
+    "rate": {
+      "schema": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          },
+          "unit": {
+            "type": "string",
+            "enum": [
+              "%"
+            ],
+            "default": "%"
+          }
+        },
+        "required": [
+          "value"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "commands": {
+    "setRate": {
+      "name": "setRate",
+      "arguments": [
+        {
+          "name": "rate",
+          "schema": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
+          }
+        }
+      ]
+    }
+  }
+}
