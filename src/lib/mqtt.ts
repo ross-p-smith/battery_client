@@ -83,8 +83,13 @@ export function useMqtt() {
     [],
   );
 
-  const publish = useCallback((topic: string, message: string) => {
-    clientRef.current?.publish(topic, message);
+  const publish = useCallback((topic: string, message: string, callback: (error?: Error) => void) => {
+    const client = clientRef.current;
+    if (!client?.connected) {
+      callback(new Error("MQTT is disconnected."));
+      return;
+    }
+    client.publish(topic, message, (error) => callback(error ?? undefined));
   }, []);
 
   return { status, subscribe, publish };

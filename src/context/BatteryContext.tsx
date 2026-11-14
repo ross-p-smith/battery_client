@@ -9,6 +9,8 @@ import {
   type ReactNode,
 } from "react";
 import { useMqtt } from "@/lib/mqtt";
+import { config } from "@/lib/config";
+import { commandMatchesTelemetry, confirmationMessage, rateCommandError } from "@/lib/control";
 import {
   dataTopics,
   controlTopics,
@@ -63,7 +65,7 @@ const defaultPowerReadings: PowerReadings = {
   Self_Consumption_Power: 0,
 };
 
-const defaultState: BatteryState = {
+export const defaultState: BatteryState = {
   power: { Flows: defaultPowerFlows, Power: defaultPowerReadings },
   energy: {
     Today: {} as EnergyToday,
@@ -78,7 +80,7 @@ const defaultState: BatteryState = {
     Battery_Type: "",
     Export_Limit: 0,
     Invertor_Firmware: "",
-    Invertor_Max_Bat_Rate: 0,
+    Invertor_Max_Bat_Rate: null,
     Invertor_Max_Inv_Rate: 0,
     Invertor_Serial_Number: "",
     Invertor_Temperature: 0,
@@ -101,10 +103,14 @@ type Action =
   | { type: "MQTT_MESSAGE"; path: string[]; value: string }
   | {
       type: "COMMAND_SENT";
+      id: string;
       command: string;
       label: string;
       watchKeys: string[];
+      payload: string;
+      error?: string;
     }
+  | { type: "COMMAND_ERROR"; id: string; message: string }
   | { type: "COMMAND_TIMEOUT"; id: string }
   | { type: "DISMISS_NOTIFICATION"; id: string };
 
@@ -116,7 +122,7 @@ function tryParseValue(raw: string): string | number | boolean {
   return raw;
 }
 
-function reducer(state: BatteryState, action: Action): BatteryState {
+export function reducer(state: BatteryState, action: Action): BatteryState {
   switch (action.type) {
     case "SET_CONNECTED":
       return { ...state, isConnected: action.connected };
@@ -128,6 +134,23 @@ function reducer(state: BatteryState, action: Action): BatteryState {
 
       // Route based on first path segment
       const category = path[0];
+
+      if (config.inverterSerial && category === config.inverterSerial && path.length === 2) {
+        const key = path[1];
+        if (!Object.hasOwn(state.inverter, key)) return state;
+        const numeric = key === "Invertor_Max_Bat_Rate" ||
+          typeof state.inverter[key as keyof typeof state.inverter] === "number";
+        const number = value.trim() === "" ? NaN : Number(value);
+        if (numeric && !Number.isFinite(number) && key !== "Invertor_Max_Bat_Rate") return state;
+        return {
+          ...state,
+          lastUpdate: now,
+          inverter: {
+            ...state.inverter,
+            [key]: numeric ? (Number.isFinite(number) ? number : null) : value,
+          },
+        };
+      }
 
       switch (category) {
         case "Power": {
@@ -197,7 +220,7 @@ function reducer(state: BatteryState, action: Action): BatteryState {
           const key = path[1];
           if (!key) return state;
           const updatedNotifications = state.notifications.map((n) =>
-            n.status === "pending" && n.watchKeys.includes(key)
+            commandMatchesTelemetry(n, "Control", key, value, state.inverter.Invertor_Max_Bat_Rate)
               ? { ...n, status: "success" as const }
               : n,
           );
@@ -222,7 +245,7 @@ function reducer(state: BatteryState, action: Action): BatteryState {
           const key = path[1];
           if (!key) return state;
           const updatedNotifications = state.notifications.map((n) =>
-            n.status === "pending" && n.watchKeys.includes(key)
+            commandMatchesTelemetry(n, "Timeslots", key, value, state.inverter.Invertor_Max_Bat_Rate)
               ? { ...n, status: "success" as const }
               : n,
           );
@@ -263,24 +286,45 @@ function reducer(state: BatteryState, action: Action): BatteryState {
 
     case "COMMAND_SENT": {
       const notification: CommandNotification = {
-        id: `${action.command}-${Date.now()}`,
+        id: action.id,
         command: action.command,
         label: action.label,
-        status: "pending",
+        status: action.error ? "error" : "pending",
         timestamp: Date.now(),
         watchKeys: action.watchKeys,
+        payload: action.payload,
+        message: action.error ?? confirmationMessage(action.command, action.payload),
       };
       return {
         ...state,
-        notifications: [...state.notifications, notification],
+        notifications: [
+          ...state.notifications.map((n) =>
+            n.status === "pending" && n.command === action.command
+              ? { ...n, status: "error" as const, message: "Superseded by a newer request." }
+              : n,
+          ),
+          notification,
+        ],
       };
     }
+
+    case "COMMAND_ERROR":
+      return {
+        ...state,
+        notifications: state.notifications.map((n) =>
+          n.id === action.id
+            ? { ...n, status: "error" as const, message: action.message }
+            : n,
+        ),
+      };
 
     case "COMMAND_TIMEOUT": {
       return {
         ...state,
         notifications: state.notifications.map((n) =>
-          n.id === action.id ? { ...n, status: "timeout" as const } : n,
+          n.id === action.id && n.status === "pending"
+            ? { ...n, status: "timeout" as const, message: "Requested value not confirmed. Check telemetry before retrying." }
+            : n,
         ),
       };
     }
@@ -341,20 +385,28 @@ export function BatteryProvider({ children }: { children: ReactNode }) {
     (command: string, payload: string) => {
       const topics = controlTopics();
       const topic = topics[command as keyof typeof topics];
-      if (topic) {
-        const meta = commandMeta[command];
-        if (meta) {
-          dispatch({
-            type: "COMMAND_SENT",
-            command,
-            label: meta.label,
-            watchKeys: meta.watchKeys,
-          });
-        }
-        publish(topic, payload);
-      }
+      const meta = commandMeta[command];
+      const id = crypto.randomUUID();
+      const error = !topic || !meta
+        ? "Not sent: unknown control command."
+        : status !== "connected"
+          ? "Not sent: MQTT is disconnected."
+          : rateCommandError(command, payload, state.inverter.Invertor_Max_Bat_Rate);
+      dispatch({
+        type: "COMMAND_SENT",
+        id,
+        command,
+        label: meta?.label ?? command,
+        watchKeys: meta?.watchKeys ?? [],
+        payload,
+        error: error ?? undefined,
+      });
+      if (error) return;
+      publish(topic, payload, (err) => {
+        if (err) dispatch({ type: "COMMAND_ERROR", id, message: `MQTT publish failed: ${err.message}` });
+      });
     },
-    [publish],
+    [publish, status, state.inverter.Invertor_Max_Bat_Rate],
   );
 
   const dismissNotification = useCallback((id: string) => {
